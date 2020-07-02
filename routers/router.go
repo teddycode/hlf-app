@@ -1,16 +1,16 @@
 package routers
 
 import (
-	"chargeSrv/middleware"
-	"chargeSrv/pkg/setting"
+	"github.com/fabric-app/middleware"
+	"github.com/fabric-app/pkg/setting"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"net/http"
 
-	"chargeSrv/controller/api/v1"
-	_ "chargeSrv/docs"
-	"chargeSrv/middleware/jwt"
+	"github.com/fabric-app/controller/api/v1"
+	_ "github.com/fabric-app/docs"
+	"github.com/fabric-app/middleware/jwt"
 )
 
 func InitRouter() *gin.Engine {

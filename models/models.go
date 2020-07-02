@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"chargeSrv/pkg/setting"
+	"github.com/fabric-app/pkg/setting"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )

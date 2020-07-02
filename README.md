@@ -3,7 +3,7 @@
 - mysql
 
 ###Ready
-Create a **chargeSrv database** and import SQL
+Create a **github.com/fabric-app database** and import SQL
 
 ### Conf
 
@@ -14,8 +14,8 @@ You should modify `conf/app.ini`
 Type = mysql
 User = root
 Password =
-Host = 127.0.0.1:3306
-Name = chargeSrv
+Host = 202.193.60.215:3306
+Name = BC
 TablePrefix = 
 ```
 ### Install
@@ -33,20 +33,20 @@ $ go run main.go
  - using code:	gin.SetMode(gin.ReleaseMode)
 
 [GIN-debug] GET    /swagger/*any             --> github.com/swaggo/gin-swagger.CustomWrapHandler.func1 (4 handlers)
-[GIN-debug] POST   /api/v1/auth              --> chargeSrv/controller/api/v1.Auth (4 handlers)
-[GIN-debug] POST   /api/v1/reg               --> chargeSrv/controller/api/v1.Reg (4 handlers)
-[GIN-debug] GET    /api/v1/currentuser       --> chargeSrv/controller/api/v1.CurrentUser (5 handlers)
-[GIN-debug] GET    /api/v1/refreshtoken      --> chargeSrv/controller/api/v1.RefreshToken (5 handlers)
-[GIN-debug] POST   /api/v1/logout            --> chargeSrv/controller/api/v1.Logout (5 handlers)
-[GIN-debug] POST   /api/v1/password          --> chargeSrv/controller/api/v1.Password (5 handlers)
-[GIN-debug] POST   /api/v1/modify            --> chargeSrv/controller/api/v1.ModifyUser (5 handlers)
-[GIN-debug] POST   /api/v1/code              --> chargeSrv/controller/api/v1.AddCode (5 handlers)
-[GIN-debug] POST   /api/v1/balance           --> chargeSrv/controller/api/v1.AddBanlance (5 handlers)
-[GIN-debug] POST   /api/v1/cost              --> chargeSrv/controller/api/v1.Cost (5 handlers)
-[GIN-debug] GET    /api/v1/incomes           --> chargeSrv/controller/api/v1.Incomes (5 handlers)
-[GIN-debug] GET    /api/v1/costs             --> chargeSrv/controller/api/v1.Costs (5 handlers)
-[GIN-debug] POST   /api/v1/updatecost        --> chargeSrv/controller/api/v1.UpdateCost (5 handlers)
-[GIN-debug] GET    /test                     --> chargeSrv/routers.InitRouter.func1 (4 handlers)
+[GIN-debug] POST   /api/v1/auth              --> github.com/fabric-app/controller/api/v1.Auth (4 handlers)
+[GIN-debug] POST   /api/v1/reg               --> github.com/fabric-app/controller/api/v1.Reg (4 handlers)
+[GIN-debug] GET    /api/v1/currentuser       --> github.com/fabric-app/controller/api/v1.CurrentUser (5 handlers)
+[GIN-debug] GET    /api/v1/refreshtoken      --> github.com/fabric-app/controller/api/v1.RefreshToken (5 handlers)
+[GIN-debug] POST   /api/v1/logout            --> github.com/fabric-app/controller/api/v1.Logout (5 handlers)
+[GIN-debug] POST   /api/v1/password          --> github.com/fabric-app/controller/api/v1.Password (5 handlers)
+[GIN-debug] POST   /api/v1/modify            --> github.com/fabric-app/controller/api/v1.ModifyUser (5 handlers)
+[GIN-debug] POST   /api/v1/code              --> github.com/fabric-app/controller/api/v1.AddCode (5 handlers)
+[GIN-debug] POST   /api/v1/balance           --> github.com/fabric-app/controller/api/v1.AddBanlance (5 handlers)
+[GIN-debug] POST   /api/v1/cost              --> github.com/fabric-app/controller/api/v1.Cost (5 handlers)
+[GIN-debug] GET    /api/v1/incomes           --> github.com/fabric-app/controller/api/v1.Incomes (5 handlers)
+[GIN-debug] GET    /api/v1/costs             --> github.com/fabric-app/controller/api/v1.Costs (5 handlers)
+[GIN-debug] POST   /api/v1/updatecost        --> github.com/fabric-app/controller/api/v1.UpdateCost (5 handlers)
+[GIN-debug] GET    /test                     --> github.com/fabric-app/routers.InitRouter.func1 (4 handlers)
 ```
 ### Swaggo
 

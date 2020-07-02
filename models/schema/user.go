@@ -15,17 +15,15 @@ type User struct {
 }
 
 //注册
-type Reg struct {
-	Username      string `json:"username" binding:"required"`        //用户名
-	Email         string `json:"email" binding:"required"`           //邮箱
-	Phone         string `json:"phone" binding:"required"`           //电话
-	Password      string `json:"password"  binding:"required"`       //密码
-	PasswordAgain string `json:"password_again" binding:"required" ` //确认密码
+type RegSwag struct {
+	Username string `json:"username" binding:"required"`  //用户名
+	Identity string `json:"identity" binding:"required"`  // identity
+	Password string `json:"password"  binding:"required"` //密码
 }
 
 //登录
 type AuthSwag struct {
-	Email    string `json:"email"`    //登录邮箱
+	Name     string `json:"name"`     //登录邮箱
 	Password string `json:"password"` //登录密码
 }
 
@@ -37,6 +35,8 @@ type PasswordSwag struct {
 
 // 修改用户信息
 type CurrentUserSwag struct {
-	Username string `json:"username"` //用户名
-	Phone    string `json:"phone"`    //电话
+	Email   string `json:"email"` //用户名
+	Phone   string `json:"phone"` //电话
+	Address string `json:"address"`
+	Header  string `json:"header"`
 }

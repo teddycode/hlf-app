@@ -1,7 +1,7 @@
 package test
 
 import (
-	"chargeSrv/routers"
+	"github.com/fabric-app/routers"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"net/http"

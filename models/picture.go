@@ -1,0 +1,41 @@
+package models
+
+import (
+	"github.com/jinzhu/gorm"
+)
+
+const PICTURE_PATH = "/root/Desktop/DataSources/lzawt/video_pics"
+
+// user table structure
+type Picture struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+	Hash string `json:"hash"`
+	Size string `json:"size"`
+	Date string `json:"date"`
+	Type string `json:"type"`
+}
+
+// create pic info
+func NewPic(pic *Picture) (int, error) {
+	err := db.Create(pic).Error
+	if err != nil {
+		return 0, err
+	}
+	return pic.ID, err
+}
+
+// update user info
+func UpdatePicHash(name, hash string) (int, error) {
+	var oldPic Picture
+	err := db.Where("name = ?", name).First(&oldPic).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return 0, err
+	}
+	oldPic.Hash = hash
+	err = db.Save(oldPic).Error
+	if err != nil {
+		return 0, nil
+	}
+	return oldPic.ID, nil
+}

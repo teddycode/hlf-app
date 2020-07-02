@@ -1,0 +1,39 @@
+package models
+
+import (
+	"github.com/jinzhu/gorm"
+)
+
+// farm type
+type FarmType struct {
+	ID    int    `json:"id"`
+	value string `json:"value"`
+}
+
+// new  record
+func NewFarmType(t *FarmType) (int, error) {
+	err := db.Create(t).Error
+	if err != nil {
+		return 0, err
+	}
+	return t.ID, err
+}
+
+// query types
+func QueryFarmTypes() ([]FarmType, error) {
+	var types []FarmType
+	err := db.Find(&types).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return types, err
+	}
+	return types, err
+}
+
+// del record
+func DelFarmType(t *FarmType) (int, error) {
+	err := db.Delete(t).Error
+	if err != nil {
+		return 0, err
+	}
+	return t.ID, err
+}

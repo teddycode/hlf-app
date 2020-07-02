@@ -1,12 +1,12 @@
 package v1
 
 import (
-	"chargeSrv/models"
-	"chargeSrv/models/schema"
-	"chargeSrv/pkg/app"
-	"chargeSrv/pkg/e"
-	"chargeSrv/pkg/util"
-	"chargeSrv/pkg/util/hash"
+	"github.com/fabric-app/models"
+	"github.com/fabric-app/models/schema"
+	"github.com/fabric-app/pkg/app"
+	"github.com/fabric-app/pkg/e"
+	"github.com/fabric-app/pkg/util"
+	"github.com/fabric-app/pkg/util/hash"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"

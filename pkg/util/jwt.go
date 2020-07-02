@@ -1,8 +1,8 @@
 package util
 
 import (
-	"chargeSrv/models"
-	"chargeSrv/pkg/setting"
+	"github.com/fabric-app/models"
+	"github.com/fabric-app/pkg/setting"
 	"github.com/dgrijalva/jwt-go"
 	"strconv"
 	"strings"
@@ -23,7 +23,7 @@ func GenerateToken(user models.User) (string, error) {
 			ExpiresAt: expireTime.Unix(),     // 失效时间
 			Id:        strconv.Itoa(user.ID), // 编号
 			IssuedAt:  time.Now().Unix(),     // 签发时间
-			Issuer:    "ChargeSrv",           // 签发人
+			Issuer:    "github.com/fabric-app",           // 签发人
 			NotBefore: time.Now().Unix(),     // 生效时间
 			Subject:   "login",               // 场景
 		},
@@ -80,7 +80,7 @@ func RefreshToken(tokenString string) (string, error) {
 					ExpiresAt: expireTime.Unix(),     // 失效时间
 					Id:        strconv.Itoa(user.ID), // 编号
 					IssuedAt:  time.Now().Unix(),     // 签发时间
-					Issuer:    "chargeSrv",           // 签发人
+					Issuer:    "github.com/fabric-app",           // 签发人
 					NotBefore: time.Now().Unix(),     // 生效时间
 					Subject:   "refresh",             // 场景
 				},

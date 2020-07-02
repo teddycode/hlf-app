@@ -1,7 +1,7 @@
 package app
 
 import (
-	"chargeSrv/pkg/logging"
+	"github.com/fabric-app/pkg/logging"
 	"github.com/astaxie/beego/validation"
 )
 

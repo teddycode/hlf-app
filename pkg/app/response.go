@@ -1,7 +1,7 @@
 package app
 
 import (
-	"chargeSrv/pkg/e"
+	"github.com/fabric-app/pkg/e"
 	"github.com/gin-gonic/gin"
 )
 

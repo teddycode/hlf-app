@@ -1,40 +1,32 @@
 package models
 
 import (
-	"chargeSrv/pkg/util/hash"
-	"chargeSrv/pkg/util/rand"
+	"bufio"
+	"github.com/fabric-app/pkg/util/hash"
+	"github.com/fabric-app/pkg/util/rand"
 	"github.com/jinzhu/gorm"
+	"os"
+	"path"
 	"time"
 )
 
-// user 表
+const HEADER_IMAGE_PATH = "./test/header/images/"
+
+// user table structure
 type User struct {
 	Model
-	Username  string  `json:"username"`
-	Email     string  `json:"email"`
-	Role      int     `json:"role"`
-	Phone     string  `json:"phone"`
-	Password  string  `json:"password"`
-	Balance   float32 `json:"balance"`
-	Secret    string  `json:"secret"`
-	DeletedOn int     `json:"deleted_on"`
+	Username string `json:"username"`
+	Identity string `json:"identity"`
+	Password string `json:"password"`
+	Phone    string `json:"phone"`
+	Email    string `json:"email"`
+	Role     int    `json:"role"`
+	Secret   string `json:"secret"`
+	Address  string `json:"address"`
+	Header   string `json:"header"`
 }
 
-//邮箱 登录验证
-func LoginCheck(email, password string) (bool, User, error) {
-	var user User
-	err := db.Where(&User{Email: email, Password: password}).First(&user).Error
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return false, user, err
-	}
-	if user.ID > 0 {
-		return true, user, nil
-	}
-
-	return false, user, nil
-}
-
-//id 查找用户
+// find user by id
 func FindUserById(id int) (User, error) {
 	var user User
 	err := db.First(&user, id).Error
@@ -45,7 +37,17 @@ func FindUserById(id int) (User, error) {
 	return user, err
 }
 
-//邮箱 查找用户
+// by name
+func FindUserByName(name string) (User, error) {
+	var user User
+	err := db.Where("username = ?", name).First(&user).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return user, err
+	}
+	return user, err
+}
+
+// find user by email
 func FindUserByEmail(e string) (User, error) {
 	var user User
 	err := db.Where("email = ?", e).First(&user).Error
@@ -56,7 +58,7 @@ func FindUserByEmail(e string) (User, error) {
 	return user, err
 }
 
-//创建新用户
+// create user info
 func NewUser(user *User) (int, error) {
 	err := db.Create(user).Error
 	if err != nil {
@@ -65,7 +67,7 @@ func NewUser(user *User) (int, error) {
 	return user.ID, err
 }
 
-//更新用户信息
+// update user info
 func UpdateUserInfo(newUser *User) (int, error) {
 	var oldUser User
 	err := db.First(&oldUser, newUser.ID).Error
@@ -73,6 +75,8 @@ func UpdateUserInfo(newUser *User) (int, error) {
 		return 0, err
 	}
 	oldUser.Username = newUser.Username
+	oldUser.Email = newUser.Email
+	oldUser.Address = newUser.Address
 	oldUser.Phone = newUser.Phone
 	oldUser.ModifiedOn = int(time.Now().Unix())
 	err = db.Save(oldUser).Error
@@ -82,7 +86,7 @@ func UpdateUserInfo(newUser *User) (int, error) {
 	return oldUser.ID, nil
 }
 
-//更新用户的secret
+// update user secret
 func UpdateUserSecret(user *User) (int, error) {
 	var secretString string
 	for {
@@ -100,7 +104,18 @@ func UpdateUserSecret(user *User) (int, error) {
 	return user.ID, err
 }
 
-//更新用户的密码
+// update user header
+func UpdateUserheader(user *User, header string) (int, error) {
+	db.First(user)
+	user.Header = header
+	err := db.Save(user).Error
+	if err != nil {
+		return 0, err
+	}
+	return user.ID, err
+}
+
+// update user password
 func UpdateUserNewPassword(user *User, newPassword string) (int, error) {
 	var secretString string
 	for {
@@ -119,25 +134,19 @@ func UpdateUserNewPassword(user *User, newPassword string) (int, error) {
 	return user.ID, err
 }
 
-//id 查询用户余额
-func findBalanceById(id int) (float32, error) {
-	var user User
-	err := db.First(&user, id).Error
-
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return 0.0, err
-	}
-	return user.Balance, nil
-}
-
-//更新用户的余额
-func UpdateUserBalance(user *User, balance float32) (int, error) {
-	db.First(user)
-	user.Balance += balance
-	user.ModifiedOn = int(time.Now().Unix())
-	err := db.Save(user).Error
+// store user header
+func storeUserHeader(username string, data []byte) (int, error) {
+	path := path.Join(HEADER_IMAGE_PATH, username, ".jpg")
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_TRUNC, 0666)
+	defer file.Close()
 	if err != nil {
 		return 0, err
 	}
-	return user.ID, err
+	writer := bufio.NewWriter(file)
+	count, err := writer.Write(data)
+	if err != nil {
+		return 0, err
+	}
+	writer.Flush()
+	return count, err
 }

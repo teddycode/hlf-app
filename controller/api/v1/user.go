@@ -1,10 +1,10 @@
 package v1
 
 import (
-	"chargeSrv/models"
-	"chargeSrv/models/schema"
-	"chargeSrv/pkg/util/hash"
-	"chargeSrv/pkg/util/rand"
+	"github.com/fabric-app/models"
+	"github.com/fabric-app/models/schema"
+	"github.com/fabric-app/pkg/util/hash"
+	"github.com/fabric-app/pkg/util/rand"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
 	"net/http"
@@ -14,9 +14,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"chargeSrv/pkg/app"
-	"chargeSrv/pkg/e"
-	"chargeSrv/pkg/util"
+	"github.com/fabric-app/pkg/app"
+	"github.com/fabric-app/pkg/e"
+	"github.com/fabric-app/pkg/util"
 )
 
 type auth struct {

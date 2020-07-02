@@ -11,11 +11,11 @@ import (
 	"os/signal"
 	"time"
 
-	"chargeSrv/pkg/setting"
-	"chargeSrv/routers"
+	"github.com/fabric-app/pkg/setting"
+	"github.com/fabric-app/routers"
 )
 
-// @title Charge server API
+// @title fabirc bcs API
 // @version 1.0
 // @description  Charge
 
@@ -28,6 +28,7 @@ import (
 func main() {
 	f, _ := os.Create("gin.log")
 	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
+
 	router := routers.InitRouter()
 
 	s := &http.Server{
