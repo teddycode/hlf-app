@@ -40,3 +40,10 @@ type CurrentUserSwag struct {
 	Address string `json:"address"`
 	Header  string `json:"header"`
 }
+
+// 数据记录上传
+type FarmRecordSwag struct {
+	OperName  string `json:"oper_name"`
+	StartTime string `json:"start_time"`
+	EndTime   string `json:"end_time"`
+}

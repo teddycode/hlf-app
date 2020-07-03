@@ -15,20 +15,20 @@ import (
 )
 
 // InstallCC install chaincode for target peer
-func (c *Client) InstallCC(v string, peer string) error {
+func (c *Client) InstallCC(cc, path, ver, peer string) error {
 	targetPeer := resmgmt.WithTargetEndpoints(peer)
 
 	// pack the chaincode
-	ccPkg, err := gopackager.NewCCPackage(c.CCPath, c.CCGoPath)
+	ccPkg, err := gopackager.NewCCPackage(path, CCGoPath)
 	if err != nil {
 		return errors.WithMessage(err, "pack chaincode error")
 	}
 
 	// new request of installing chaincode
 	req := resmgmt.InstallCCRequest{
-		Name:    c.CCID,
-		Path:    c.CCPath,
-		Version: v,
+		Name:    cc,
+		Path:    path,
+		Version: ver,
 		Package: ccPkg,
 	}
 
@@ -46,7 +46,7 @@ func (c *Client) InstallCC(v string, peer string) error {
 		}
 		if resp.Info == "already installed" {
 			log.Printf("Chaincode %s already installed on peer: %s.\n",
-				c.CCID+"-"+v, resp.Target)
+				cc+"-"+ver, resp.Target)
 			return nil
 		}
 	}
@@ -59,7 +59,7 @@ func (c *Client) InstallCC(v string, peer string) error {
 }
 
 // args := packArgs([]string{"init", "a", "100", "b", "200"})
-func (c *Client) InstantiateCC(args []string, ver, peer string) (fab.TransactionID, error) {
+func (c *Client) InstantiateCC(cc, path string, args []string, ver, peer string) (fab.TransactionID, error) {
 	// endorser policy
 	org1OrOrg2 := "OR('Org1MSP.member','Org2MSP.member')"
 	ccPolicy, err := c.genPolicy(org1OrOrg2)
@@ -71,8 +71,8 @@ func (c *Client) InstantiateCC(args []string, ver, peer string) (fab.Transaction
 	// Attention: args should include `init` for Request not
 	// have a method term to call init
 	req := resmgmt.InstantiateCCRequest{
-		Name:    c.CCID,
-		Path:    c.CCPath,
+		Name:    cc,
+		Path:    path,
 		Version: ver,
 		Args:    packArgs(args),
 		Policy:  ccPolicy,
@@ -80,7 +80,7 @@ func (c *Client) InstantiateCC(args []string, ver, peer string) (fab.Transaction
 
 	// send request and handle response
 	reqPeers := resmgmt.WithTargetEndpoints(peer)
-	resp, err := c.rc.InstantiateCC(c.ChannelID, req, reqPeers)
+	resp, err := c.rc.InstantiateCC(ChannelID, req, reqPeers)
 	if err != nil {
 		if strings.Contains(err.Error(), "already exists") {
 			return "", nil
@@ -100,12 +100,12 @@ func (c *Client) genPolicy(p string) (*common.SignaturePolicyEnvelope, error) {
 	return cauthdsl.FromString(p)
 }
 
-func (c *Client) InvokeCC(fun string, args []string, peers []string) (fab.TransactionID, error) {
+func (c *Client) InvokeCC(cc, fun string, args [][]byte, peers []string) (fab.TransactionID, error) {
 	// new channel request for invoke
 	req := channel.Request{
-		ChaincodeID: c.CCID,
+		ChaincodeID: cc,
 		Fcn:         fun,
-		Args:        packArgs(args),
+		Args:        args,
 	}
 	// send request and handle response, peers is needed
 	reqPeers := channel.WithTargetEndpoints(peers...)
@@ -120,10 +120,10 @@ func (c *Client) InvokeCC(fun string, args []string, peers []string) (fab.Transa
 	return resp.TransactionID, nil
 }
 
-func (c *Client) QueryCC(fun string, keys []string, peer string) error {
+func (c *Client) QueryCC(cc, fun string, keys []string, peer string) ([]byte, error) {
 	// new channel request for query
 	req := channel.Request{
-		ChaincodeID: c.CCID,
+		ChaincodeID: cc,
 		Fcn:         fun,
 		Args:        packArgs(keys),
 	}
@@ -132,17 +132,17 @@ func (c *Client) QueryCC(fun string, keys []string, peer string) error {
 	reqPeers := channel.WithTargetEndpoints(peer)
 	resp, err := c.cc.Query(req, reqPeers)
 	if err != nil {
-		return errors.WithMessage(err, "query chaincode error")
+		return nil, errors.WithMessage(err, "query chaincode error")
 	}
 
 	log.Printf("Query chaincode tx response:\ntx: %s\nresult: %v\n\n",
 		resp.TransactionID,
 		string(resp.Payload))
-	return nil
+	return resp.Payload, nil
 }
 
 //	args := packArgs([]string{"init", "a", "1000", "b", "2000"})
-func (c *Client) UpgradeCC(ver string, args []string, peer string) error {
+func (c *Client) UpgradeCC(cc, path, ver string, args []string, peer string) error {
 	// endorser policy
 	org1AndOrg2 := "AND('Org1MSP.member','Org2MSP.member')"
 	ccPolicy, err := c.genPolicy(org1AndOrg2)
@@ -155,8 +155,8 @@ func (c *Client) UpgradeCC(ver string, args []string, peer string) error {
 	// have a method term to call init
 	// Reset a b's value to test the upgrade
 	req := resmgmt.UpgradeCCRequest{
-		Name:    c.CCID,
-		Path:    c.CCPath,
+		Name:    cc,
+		Path:    path,
 		Version: ver,
 		Args:    packArgs(args),
 		Policy:  ccPolicy,
@@ -164,7 +164,7 @@ func (c *Client) UpgradeCC(ver string, args []string, peer string) error {
 
 	// send request and handle response
 	reqPeers := resmgmt.WithTargetEndpoints(peer)
-	resp, err := c.rc.UpgradeCC(c.ChannelID, req, reqPeers)
+	resp, err := c.rc.UpgradeCC(ChannelID, req, reqPeers)
 	if err != nil {
 		return errors.WithMessage(err, "instantiate chaincode error")
 	}

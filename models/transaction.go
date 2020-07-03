@@ -16,7 +16,7 @@ const (
 type Transaction struct {
 	ID        int    `json:"id"`
 	Timestamp int    `json:"timestamp"`
-	Type      string `json:"type"`
+	Type      int    `json:"type"`
 	Hash      string `json:"hash"`
 	Point     string `json:"point"`
 }
@@ -110,3 +110,22 @@ func CountTxNumByPoint(p string) (int64, error) {
 	return count, err
 }
 
+// count tx number by point
+func CountTxNums() (int64, error) {
+	var count int64
+	err := db.Model(&Transaction{}).Count(&count).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return 0, err
+	}
+	return count, err
+}
+
+// get all points
+func GetAllPoints() ([]Transaction, error) {
+	var points []Transaction
+	err := db.Select("point").Find(&points).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, err
+	}
+	return points, err
+}

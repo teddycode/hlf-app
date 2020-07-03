@@ -7,6 +7,10 @@ type TransactionSwag struct {
 	Point     string `json:"point" binding:"required"`
 }
 
-type QueryTrancsNumSwag struct {
-	Type string `json:"type" binding:"required"`
+type QueryTransNumSwag struct {
+	Type int `json:"type" binding:"required"`
+}
+
+type QueryPointTxNumSwag struct {
+	Point string `json:"type" binding:"required"`
 }

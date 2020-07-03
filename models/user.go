@@ -21,9 +21,28 @@ type User struct {
 	Phone    string `json:"phone"`
 	Email    string `json:"email"`
 	Role     int    `json:"role"`
+	CaSecure string `json:"ca_secure"`
 	Secret   string `json:"secret"`
 	Address  string `json:"address"`
 	Header   string `json:"header"`
+}
+
+// create user info
+func NewUser(user *User) (int, error) {
+	err := db.Create(user).Error
+	if err != nil {
+		return 0, err
+	}
+	return user.ID, err
+}
+
+// del user
+func DelUser(user *User) (int, error) {
+	err := db.Delete(user).Error
+	if err != nil {
+		return 0, err
+	}
+	return user.ID, err
 }
 
 // find user by id
@@ -56,15 +75,6 @@ func FindUserByEmail(e string) (User, error) {
 		return user, err
 	}
 	return user, err
-}
-
-// create user info
-func NewUser(user *User) (int, error) {
-	err := db.Create(user).Error
-	if err != nil {
-		return 0, err
-	}
-	return user.ID, err
 }
 
 // update user info
@@ -105,8 +115,9 @@ func UpdateUserSecret(user *User) (int, error) {
 }
 
 // update user header
-func UpdateUserheader(user *User, header string) (int, error) {
-	db.First(user)
+func UpdateUserheader(name, header string) (int, error) {
+	var user User
+	db.Where("username = ?", name).First(&user)
 	user.Header = header
 	err := db.Save(user).Error
 	if err != nil {
@@ -135,7 +146,7 @@ func UpdateUserNewPassword(user *User, newPassword string) (int, error) {
 }
 
 // store user header
-func storeUserHeader(username string, data []byte) (int, error) {
+func SaveUserHeader(username string, data []byte) (int, error) {
 	path := path.Join(HEADER_IMAGE_PATH, username, ".jpg")
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_TRUNC, 0666)
 	defer file.Close()

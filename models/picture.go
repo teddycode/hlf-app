@@ -2,6 +2,8 @@ package models
 
 import (
 	"github.com/jinzhu/gorm"
+	"os"
+	"path"
 )
 
 const PICTURE_PATH = "/root/Desktop/DataSources/lzawt/video_pics"
@@ -38,4 +40,14 @@ func UpdatePicHash(name, hash string) (int, error) {
 		return 0, nil
 	}
 	return oldPic.ID, nil
+}
+
+// get pictures file
+func GetPicFile(point, date, name string) (*os.File, error) {
+	path := path.Join(PICTURE_PATH, point, date, name+".jpg")
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_TRUNC, 0666)
+	if err != nil {
+		return nil, err
+	}
+	return file, nil
 }

@@ -135,6 +135,22 @@ func (c *Client) EnrollUser(username, orgName, secret, identityTypeUser string) 
 	return username + " login success", true
 }
 
+// Reovoke a user
+func (c *Client) RevokeUser(username, orgName, secret, identityTypeUser string) (string, bool) {
+	request := clientMSP.RemoveIdentityRequest{
+		ID:     username,
+		Force:  true,
+		CAName: "ca.org1.lzawt.com",
+	}
+	idr, err := c.mc.RemoveIdentity(&request)
+	if err != nil {
+		log.Printf("enroll %s failed: %v", username, err)
+		return err.Error(), false
+	}
+	log.Println(idr)
+	return username + " RevokeUser success", true
+}
+
 // getRegisteredUser get registered user. If user is not enrolled, enroll new user
 func (c *Client) GetRegisteredUser(username, orgName, secret, identityTypeUser string) (string, bool) {
 	//ctxProvider := c.SDK.Context(fabsdk.WithOrg(orgName))

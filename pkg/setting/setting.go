@@ -2,6 +2,7 @@ package setting
 
 import (
 	"log"
+	"strings"
 	"time"
 
 	"github.com/go-ini/ini"
@@ -18,6 +19,9 @@ var (
 
 	PageSize  int
 	JwtSecret string
+
+	Peers  []string
+	BcConf string
 )
 
 func init() {
@@ -37,6 +41,7 @@ func init() {
 	LoadBase()
 	LoadServer()
 	LoadApp()
+	LoadBlockchain()
 }
 
 func LoadBase() {
@@ -62,4 +67,14 @@ func LoadApp() {
 
 	JwtSecret = sec.Key("JWT_SECRET").MustString("!@)*#)!@U#@*!@!)")
 	PageSize = sec.Key("PAGE_SIZE").MustInt(10)
+}
+
+func LoadBlockchain() {
+	sec, err := Cfg.GetSection("blockchain")
+	if err != nil {
+		log.Fatalf("Fail to get section 'app': %v", err)
+	}
+	p := sec.Key("PEERS").MustString("peer0.org1.lzawt.com")
+	Peers = strings.Split(p, ",")
+	BcConf = sec.Key("CONFIG").MustString("./config.yaml")
 }
