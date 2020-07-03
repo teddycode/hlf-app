@@ -161,3 +161,13 @@ func SaveUserHeader(username string, data []byte) (int, error) {
 	writer.Flush()
 	return count, err
 }
+
+// get user header
+func GetUserHeader(username string) (*os.File, error) {
+	path := path.Join(HEADER_IMAGE_PATH, username, ".jpg")
+	file, err := os.OpenFile(path, os.O_RDONLY|os.O_TRUNC, 0666)
+	if err != nil {
+		return nil, err
+	}
+	return file, err
+}

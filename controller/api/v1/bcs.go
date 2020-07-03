@@ -107,3 +107,5 @@ func Points(c *gin.Context) {
 	appG.Response(http.StatusOK, e.SUCCESS, res)
 	return
 }
+
+

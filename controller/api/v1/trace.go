@@ -2,6 +2,7 @@ package v1
 
 import (
 	"bytes"
+	"encoding/json"
 	"github.com/fabric-app/models"
 	"github.com/fabric-app/models/schema"
 	"github.com/fabric-app/pkg/app"
@@ -10,6 +11,13 @@ import (
 	"github.com/fabric-app/pkg/setting"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
+)
+
+const (
+	DATA_TYPE_SENSOR = 0
+	DATA_TYPE_PIC    = 1
+	DATA_TYPE_FARM   = 2
 )
 
 // @Summary  传感器数据溯源
@@ -27,7 +35,7 @@ func Sensors(c *gin.Context) {
 	if err != nil {
 		appG.Response(http.StatusOK, e.INVALID_PARAMS, nil)
 	}
-	res, err := BCS.QueryCC("traceble", "query",
+	res, err := BCS.QueryCC("traceable", "query",
 		[]string{"s", reqInfo.Point, reqInfo.StarTime, reqInfo.EndTime}, setting.Peers[0])
 	if err != nil {
 		appG.Response(http.StatusOK, e.ERROR_CC_QUERY_FAILED, "Chaincode query failed.")
@@ -51,7 +59,7 @@ func Pictures(c *gin.Context) {
 	if err != nil {
 		appG.Response(http.StatusOK, e.INVALID_PARAMS, nil)
 	}
-	res, err := BCS.QueryCC("traceble", "query",
+	res, err := BCS.QueryCC("traceable", "query",
 		[]string{"p", reqInfo.Point, reqInfo.StarTime, reqInfo.EndTime}, setting.Peers[0])
 	if err != nil {
 		appG.Response(http.StatusOK, e.ERROR_CC_QUERY_FAILED, "Chaincode query failed.")
@@ -75,7 +83,7 @@ func Farms(c *gin.Context) {
 	if err != nil {
 		appG.Response(http.StatusOK, e.INVALID_PARAMS, nil)
 	}
-	res, err := BCS.QueryCC("traceble", "query",
+	res, err := BCS.QueryCC("traceable", "query",
 		[]string{"f", reqInfo.Point, reqInfo.StarTime, reqInfo.EndTime}, setting.Peers[0])
 	if err != nil {
 		appG.Response(http.StatusOK, e.ERROR_CC_QUERY_FAILED, "Chaincode query failed.")
@@ -115,7 +123,7 @@ func DownloadPic(c *gin.Context) {
 
 	appG.C.Writer.Header().Add("Content-Type", "application/octet-stream")
 	appG.C.Writer.Header().Add("Content-Disposition", "attachment;filename="+file.Name())
-	appG.Response(http.StatusOK, e.ERROR_ADD_FAIL, buf.Bytes())
+	appG.Response(http.StatusOK, e.SUCCESS, buf.Bytes())
 }
 
 // @Summary  链上信息检验
@@ -132,7 +140,63 @@ func Verifier(c *gin.Context) {
 	err := c.BindJSON(&reqInfo)
 	if err != nil {
 		appG.Response(http.StatusOK, e.INVALID_PARAMS, nil)
+		return
 	}
-
+	res, err := BCS.QueryTxByID(reqInfo.Hash, setting.Peers[0])
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_LEDGER_FAILED, nil)
+		return
+	}
 	appG.Response(http.StatusOK, e.ERROR_ADD_FAIL, res)
+}
+
+// @Summary 数据上链接口
+// @Tags 溯源查询
+// @Accept json
+// @Produce  json
+// @Param   body  body   schema.UploadSwag   true "body"
+// @Security ApiKeyAuth
+// @Success 200 {string} gin.Context.JSON
+// @Failure 400 {string} gin.Context.JSON
+// @Router  /api/v1/bcs/upload  [POST]
+func Uploader(c *gin.Context) {
+	appG := app.Gin{C: c}
+	var reqInfo schema.UploadSwag
+	err := c.BindJSON(&reqInfo)
+	if err != nil {
+		appG.Response(http.StatusOK, e.INVALID_PARAMS, "Bind json error.")
+		return
+	}
+	// check data format
+	if reqInfo.Type == "s" { //  sensor data
+		var sensor schema.BCSensor
+		err := json.Unmarshal([]byte(reqInfo.Raw), &sensor)
+		if err != nil {
+			appG.Response(http.StatusOK, e.INVALID_PARAMS, "Unmarshal json error.")
+			return
+		}
+	} else if reqInfo.Type == "p" { // pics data
+		var pic schema.BCPic
+		err := json.Unmarshal([]byte(reqInfo.Raw), &pic)
+		if err != nil {
+			appG.Response(http.StatusOK, e.INVALID_PARAMS, "Unmarshal json error.")
+			return
+		}
+	} else {
+		appG.Response(http.StatusOK, e.INVALID_PARAMS, "Data type not found.")
+		return
+	}
+	txID, err := BCS.InvokeCC("traceable", "add",
+		[][]byte{[]byte(reqInfo.Type), []byte(reqInfo.Point), []byte(reqInfo.Raw)}, setting.Peers)
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_CC_INVOKE_FAILED, "Chaincode traceable invoke failed.")
+		return
+	}
+	id, _ := models.NewTx(&models.Transaction{
+		Timestamp: int(time.Now().Unix()),
+		Type:      reqInfo.Type,
+		Hash:      string(txID),
+		Point:     reqInfo.Point,
+	})
+	appG.Response(http.StatusOK, e.SUCCESS, id)
 }

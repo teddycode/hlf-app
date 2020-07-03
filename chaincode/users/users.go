@@ -4,14 +4,19 @@ import (
 	"fmt"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
-	"strings"
 )
 
 /*
 	user manage modular
 	// admin add user info
 	// user login must check
+	//  name~id = role
 */
+const (
+	ROLE_ADMIN   = "0"
+	ROLE_USER    = "1"
+	ROLE_REVOKED = "2"
+)
 
 type Auth struct {
 }
@@ -35,17 +40,20 @@ func (this *Auth) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
 	return shim.Error("Invalid Smart Contract function name")
 }
 
-// params: user real name, identity number hash
+// params: user real name, role ,identity number hash
+// add a user identity
 func (this *Auth) add(stub shim.ChaincodeStubInterface, args []string) peer.Response {
 
-	if len(args) != 2 {
+	if len(args) != 3 {
 		return shim.Error("Incorrect number of arguments.Expecting 2")
 	}
 
 	name := args[0]
-	id := args[1]
+	role := args[1]
+	id := args[2]
+	key := name + "~" + id
 
-	err := stub.PutState(id, []byte(name))
+	err := stub.PutState(key, []byte(role))
 	if err != nil {
 		shim.Error(err.Error())
 	}
@@ -54,6 +62,7 @@ func (this *Auth) add(stub shim.ChaincodeStubInterface, args []string) peer.Resp
 }
 
 // params: user real name, identity number hash
+// check if exist or is admin user
 func (this *Auth) check(stub shim.ChaincodeStubInterface, args []string) peer.Response {
 
 	if len(args) != 2 {
@@ -62,29 +71,27 @@ func (this *Auth) check(stub shim.ChaincodeStubInterface, args []string) peer.Re
 
 	name := args[0]
 	id := args[1]
+	key := name + "~" + id
 
 	//  query by user name
-	data, err := stub.GetState(id)
+	data, err := stub.GetState(key)
 
 	if err != nil {
 		return shim.Error(err.Error())
 	}
 
-	fmt.Printf("data:%v,name:%v", data, name)
-	if data != nil && strings.Compare(string(data), name) == 0 {
-		return shim.Success(nil)
-	}
-
-	return shim.Error("User not found.")
+	return shim.Success(data)
 }
 
-// key para: identity id
+// key para: user name , identity id
 func (this *Auth) del(stub shim.ChaincodeStubInterface, args []string) peer.Response {
 	if len(args) != 1 {
 		return shim.Error("Incorrect number of arguments.Expecting 1")
 	}
-	id := args[0]
-	data, err := stub.GetState(id)
+	name := args[0]
+	id := args[1]
+	key := name + "~" + id
+	data, err := stub.GetState(key)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
@@ -93,18 +100,16 @@ func (this *Auth) del(stub shim.ChaincodeStubInterface, args []string) peer.Resp
 		return shim.Error("User not found.")
 	}
 
-	err = stub.DelState(id)
+	err = stub.PutState(key, []byte(ROLE_REVOKED))
 	if err != nil {
 		shim.Error(err.Error())
 	}
-
 	return shim.Success([]byte("User unAuth ok!"))
-
 }
 
 func main() {
 	err := shim.Start(new(Auth))
 	if err != nil {
-		fmt.Println("chaincode start error!")
+		fmt.Println("Chaincode start error!")
 	}
 }

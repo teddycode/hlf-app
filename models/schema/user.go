@@ -3,7 +3,7 @@ package schema
 //用户表
 type User struct {
 	ID         uint    `json:"id"`
-	Username   string  `json:"username"`
+	UserName   string  `json:"user_name"`
 	Email      string  `json:"email"`
 	Phone      string  `json:"phone"`
 	Password   string  `json:"password"`
@@ -23,8 +23,8 @@ type RegSwag struct {
 
 //登录
 type AuthSwag struct {
-	Name     string `json:"name"`     //登录邮箱
-	Password string `json:"password"` //登录密码
+	UserName string `json:"user_name"` //登录邮箱
+	Password string `json:"password"`  //登录密码
 }
 
 //修改密码
@@ -46,4 +46,9 @@ type FarmRecordSwag struct {
 	OperName  string `json:"oper_name"`
 	StartTime string `json:"start_time"`
 	EndTime   string `json:"end_time"`
+}
+
+type RevokeSwag struct {
+	UserName string `json:"user_name"`
+	Identity string `json:"identity"`
 }

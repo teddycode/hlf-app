@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/fabric-app/models"
@@ -24,7 +25,12 @@ import (
 	"github.com/fabric-app/pkg/util"
 )
 
-const HEADER_IMAGE_PATH = "./test/header/images/"
+const (
+	ROLE_ADMIN        = 0
+	ROLE_USER         = 1
+	ROLE_REVOKED      = 2
+	HEADER_IMAGE_PATH = "./test/header/images/"
+)
 
 var BCS = bcs.New(setting.BcConf, "org1", "Admin", "User1")
 
@@ -57,6 +63,23 @@ func Reg(c *gin.Context) {
 	err := c.BindJSON(&reqInfo)
 	if err != nil {
 		appG.Response(http.StatusOK, e.INVALID_PARAMS, nil)
+		return
+	}
+	// check if admin user
+	res, err := BCS.QueryCC("users", "check",
+		[]string{reqInfo.Username, hash.EncodeMD5(reqInfo.Identity)}, setting.Peers[0])
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_CC_QUERY_FAILED, nil)
+		return
+	}
+	role, err := strconv.ParseInt(string(res), 10, 32)
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR, "Convert res failed.")
+		return
+	}
+	if role != ROLE_ADMIN {
+		appG.Response(http.StatusOK, e.ERROR_AUTH_NOT_PERMISSION, "No permission")
+		return
 	}
 	passwdEncode := hash.EncodeMD5(reqInfo.Password)
 	// register in ca
@@ -82,7 +105,7 @@ func Reg(c *gin.Context) {
 	var newUser models.User
 	newUser.Username = reqInfo.Username
 	newUser.Identity = reqInfo.Identity
-	newUser.Role = 1
+	newUser.Role = ROLE_USER
 	newUser.Password = passwdEncode //密码md5值保存
 	newUser.CaSecure = passwdEncode //密码md5值保存
 	newUser.Secret = rand.RandStringBytesMaskImprSrcUnsafe(5)
@@ -135,6 +158,62 @@ func Auth(c *gin.Context) {
 	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{
 		"token": token,
 		"msg":   data,
+	})
+}
+
+// @Summary  用户注销
+// @Tags 用户管理
+// @Accept json
+// @Produce  json
+// @Param   body  body   schema.RevokeSwag   true "body"
+// @Success 200 {string} gin.Context.JSON
+// @Failure 400 {string} gin.Context.JSON
+// @Router /api/v1/user/auth  [POST]
+func Revoker(c *gin.Context) {
+	appG := app.Gin{C: c}
+	var reqInfo schema.RevokeSwag
+	var data = "ok"
+	err := c.BindJSON(&reqInfo)
+	if err != nil {
+		appG.Response(http.StatusOK, e.INVALID_PARAMS, nil)
+		return
+	}
+
+	// check if admin user
+	res, err := BCS.QueryCC("users", "check",
+		[]string{reqInfo.UserName, hash.EncodeMD5(reqInfo.Identity)}, setting.Peers[0])
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_CC_QUERY_FAILED, nil)
+		return
+	}
+	role, err := strconv.ParseInt(string(res), 10, 32)
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR, "Convert res failed.")
+		return
+	}
+	if role != ROLE_ADMIN {
+		appG.Response(http.StatusOK, e.ERROR_AUTH_NOT_PERMISSION, "No permission")
+		return
+	}
+
+	user, err := models.FindUserByName(reqInfo.UserName)
+	if err == nil || len(user.Phone) == 0 {
+		data = "First Login"
+	}
+
+	res1, ok := BCS.RevokeUser(reqInfo.UserName, "org1", user.CaSecure, "user")
+	if !ok {
+		appG.Response(http.StatusOK, e.ERROR_CA_ENROLL_FAILED, res1)
+		return
+	}
+
+	_, err = models.DelUser(&user)
+	if err != nil {
+		logging.Error("Delete user record failed: ", err.Error())
+	}
+
+	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{
+		"msg": data,
 	})
 }
 
@@ -412,39 +491,23 @@ func Record(c *gin.Context) {
 		})
 		return
 	}
-	Authorization := c.GetHeader("Authorization") //在header中存放token
-	token := strings.Split(Authorization, " ")
-	//token := c.Query("token")
-	if Authorization == "" {
-		code = e.INVALID_PARAMS
-	} else {
-		claims, err := util.ParseToken(token[0])
-		if err != nil {
-			switch err.(*jwt.ValidationError).Errors {
-			case jwt.ValidationErrorExpired:
-				code = e.ERROR_AUTH_CHECK_TOKEN_TIMEOUT
-			default:
-				code = e.ERROR_AUTH_CHECK_TOKEN_FAIL
-			}
-		}
-		userName = claims.Audience
-	}
+	userName, code = getUserNameFromToken(c)
 	if code != e.SUCCESS {
-		appG.Response(http.StatusOK, e.ERROR_AUTH_NOT_PERMISSION, map[string]interface{}{
-			"data": "Invalid authorization",
-		})
+		appG.Response(http.StatusOK, code, "Get user name failed.")
+		return
 	}
 	strJson, _ := json.Marshal(reqInfo)
-	txID, err := BCS.InvokeCC("traceble", "add",
+	txID, err := BCS.InvokeCC("traceable", "add",
 		[][]byte{[]byte("f"), []byte(userName), strJson}, setting.Peers)
 	if err != nil {
 		appG.Response(http.StatusOK, e.ERROR_CC_INVOKE_FAILED, map[string]interface{}{
 			"data": "chaincode invoke failed.",
 		})
+		return
 	}
 	transaction := models.Transaction{
 		Timestamp: int(time.Now().Unix()),
-		Type:      1,
+		Type:      "f",
 		Hash:      string(txID),
 		Point:     userName,
 	}
@@ -478,6 +541,25 @@ func Operations(c *gin.Context) {
 	return
 }
 
+func getUserNameFromToken(c *gin.Context) (string, int) {
+	Authorization := c.GetHeader("Authorization") //在header中存放token
+	token := strings.Split(Authorization, " ")
+	if Authorization == "" {
+		return "", e.INVALID_PARAMS
+	} else {
+		claims, err := util.ParseToken(token[0])
+		if err != nil {
+			switch err.(*jwt.ValidationError).Errors {
+			case jwt.ValidationErrorExpired:
+				return "", e.ERROR_AUTH_CHECK_TOKEN_TIMEOUT
+			default:
+				return "", e.ERROR_AUTH_CHECK_TOKEN_FAIL
+			}
+		}
+		return claims.Audience, e.SUCCESS
+	}
+}
+
 // @Summary 用户更换头像
 // @Tags 用户管理
 // @Accept json
@@ -486,7 +568,7 @@ func Operations(c *gin.Context) {
 // @Success 200 {string} gin.Context.JSON
 // @Failure 400 {string} gin.Context.JSON
 // @Router  /api/v1/user/header   [GET]
-func Headers(c *gin.Context) {
+func SetHeader(c *gin.Context) {
 	appG := app.Gin{C: c}
 	var userName string
 	var code int
@@ -499,26 +581,10 @@ func Headers(c *gin.Context) {
 		appG.Response(http.StatusOK, e.ERROR_FILE_GET_FAILED, "Form file size is empty.")
 		return
 	}
-	Authorization := c.GetHeader("Authorization") //在header中存放token
-	token := strings.Split(Authorization, " ")
-	if Authorization == "" {
-		code = e.INVALID_PARAMS
-	} else {
-		claims, err := util.ParseToken(token[0])
-		if err != nil {
-			switch err.(*jwt.ValidationError).Errors {
-			case jwt.ValidationErrorExpired:
-				code = e.ERROR_AUTH_CHECK_TOKEN_TIMEOUT
-			default:
-				code = e.ERROR_AUTH_CHECK_TOKEN_FAIL
-			}
-		}
-		userName = claims.Audience
-	}
+	userName, code = getUserNameFromToken(c)
 	if code != e.SUCCESS {
-		appG.Response(http.StatusOK, e.ERROR_AUTH_NOT_PERMISSION, map[string]interface{}{
-			"data": "Invalid authorization",
-		})
+		appG.Response(http.StatusOK, code, "Get user name failed.")
+		return
 	}
 	path := path.Join(HEADER_IMAGE_PATH, userName, ".jpg")
 	err = c.SaveUploadedFile(f, path)
@@ -528,6 +594,39 @@ func Headers(c *gin.Context) {
 		})
 		return
 	}
-	models.UpdateUserheader(userName,userName)  // update table
+	models.UpdateUserheader(userName, userName) // update table
 	appG.Response(http.StatusOK, e.SUCCESS, "OK")
+}
+
+// @Summary 用户头像获取
+// @Tags 用户管理
+// @Accept json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Success 200 {string} gin.Context.JSON
+// @Failure 400 {string} gin.Context.JSON
+// @Router  /api/v1/user/operType   [GET]
+func GetHeader(c *gin.Context) {
+	appG := app.Gin{C: c}
+	userName, code := getUserNameFromToken(c)
+	if code != e.SUCCESS {
+		appG.Response(http.StatusOK, code, "Token parse error.")
+		return
+	}
+	file, err := models.GetUserHeader(userName)
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_NOT_EXIST, "Empty")
+		return
+	}
+	buf := bytes.Buffer{}
+	size, err := buf.ReadFrom(file)
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_FILE_GET_FAILED, "File buffer create failed.")
+		return
+	}
+	logging.Debug("Header images load success,size:", size)
+
+	appG.C.Writer.Header().Add("Content-Type", "application/octet-stream")
+	appG.C.Writer.Header().Add("Content-Disposition", "attachment;filename="+file.Name())
+	appG.Response(http.StatusOK, e.SUCCESS, buf.Bytes())
 }

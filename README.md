@@ -1,13 +1,20 @@
 ### Required
-- go version 1.13.4
-- mysql
+- ubuntu 18.04
+- go 1.13.4
+- docker 19.03
+- docker-compose 1.26.0
+- mysql 8.0
+- hyperledger fabric 1.4.6
 
 ###Ready
-Create a **github.com/fabric-app database** and import SQL
+- Create a **github.com/fabric-app database** and import SQL
+- Bring up hyperledger fabric local test net or cluster
 
-### Conf
+### Config
 
 You should modify `conf/app.ini`
+Crypto-config files should be replace by you fabric network msp files
+Change the network connection config file: conn-fn1.yaml 
 
 ```
 [database]
@@ -20,6 +27,7 @@ TablePrefix =
 ```
 ### Install
 ```
+$ go get -u github.com/swaggo/swag/cmd/swag
 $ git clone 
 $ go mod tidy
 $ go mod vendor

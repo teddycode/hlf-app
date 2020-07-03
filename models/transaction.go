@@ -16,7 +16,7 @@ const (
 type Transaction struct {
 	ID        int    `json:"id"`
 	Timestamp int    `json:"timestamp"`
-	Type      int    `json:"type"`
+	Type      string `json:"type"`
 	Hash      string `json:"hash"`
 	Point     string `json:"point"`
 }

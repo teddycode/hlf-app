@@ -1,10 +1,10 @@
 package jwt
 
 import (
+	"github.com/dgrijalva/jwt-go"
 	"github.com/fabric-app/pkg/app"
 	"github.com/fabric-app/pkg/e"
 	"github.com/fabric-app/pkg/util"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )

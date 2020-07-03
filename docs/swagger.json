@@ -2,7 +2,7 @@
     "swagger": "2.0",
     "info": {
         "description": "Charge",
-        "title": "Charge server API",
+        "title": "fabirc bcs API",
         "contact": {},
         "license": {},
         "version": "1.0"
@@ -10,178 +10,7 @@
     "host": "localhost:8000",
     "basePath": "/",
     "paths": {
-        "/api/v1/auth": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "用户管理"
-                ],
-                "summary": "用户登录 获取token 信息",
-                "parameters": [
-                    {
-                        "description": "body",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.AuthSwag"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/balance": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "余额管理"
-                ],
-                "summary": "充值余额",
-                "parameters": [
-                    {
-                        "description": "body",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.BalanceSwag"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/code": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "余额管理"
-                ],
-                "summary": "添加充值码",
-                "parameters": [
-                    {
-                        "description": "body",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.CodeSwag"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/cost": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "余额管理"
-                ],
-                "summary": "消费",
-                "parameters": [
-                    {
-                        "description": "body",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.CostSwag"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/costs": {
+        "/api/v1/bcs/info": {
             "get": {
                 "security": [
                     {
@@ -195,9 +24,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "余额管理"
+                    "区块链监控"
                 ],
-                "summary": "查询消费记录",
+                "summary": "获取区块链状态信息",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -214,7 +43,362 @@
                 }
             }
         },
-        "/api/v1/currentuser": {
+        "/api/v1/bcs/points": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "区块链监控"
+                ],
+                "summary": "查询所有采集点及其信息数量",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/bcs/transactions": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "区块链监控"
+                ],
+                "summary": "条件查询交易数",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.QueryTransNumSwag"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/bcs/upload": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "溯源查询"
+                ],
+                "summary": "数据上链接口",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UploadSwag"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/trace/downloadPic": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "溯源查询"
+                ],
+                "summary": "图片下载",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.PictureSwag"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/trace/farm": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "溯源查询"
+                ],
+                "summary": "农事数据溯源",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.FarmSwag"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/trace/pictures": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "溯源查询"
+                ],
+                "summary": "图片信息溯源",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.PicSwag"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/trace/sensors": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "溯源查询"
+                ],
+                "summary": "传感器数据溯源",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.SensorSwag"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/trace/verifier": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "溯源查询"
+                ],
+                "summary": "链上信息检验",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.VerifySwag"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/auth": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "用户注销",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.RevokeSwag"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/currentuser": {
             "get": {
                 "security": [
                     {
@@ -247,7 +431,7 @@
                 }
             }
         },
-        "/api/v1/incomes": {
+        "/api/v1/user/header": {
             "get": {
                 "security": [
                     {
@@ -261,9 +445,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "余额管理"
+                    "用户管理"
                 ],
-                "summary": "查询充值记录",
+                "summary": "用户更换头像",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -280,7 +464,7 @@
                 }
             }
         },
-        "/api/v1/logout": {
+        "/api/v1/user/logout": {
             "post": {
                 "security": [
                     {
@@ -313,7 +497,7 @@
                 }
             }
         },
-        "/api/v1/modify": {
+        "/api/v1/user/modify": {
             "post": {
                 "security": [
                     {
@@ -357,7 +541,40 @@
                 }
             }
         },
-        "/api/v1/password": {
+        "/api/v1/user/operType": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "用户头像获取",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/password": {
             "post": {
                 "security": [
                     {
@@ -401,7 +618,51 @@
                 }
             }
         },
-        "/api/v1/refreshtoken": {
+        "/api/v1/user/record": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "用户记录上传",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.FarmRecordSwag"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/refreshtoken": {
             "get": {
                 "security": [
                     {
@@ -434,7 +695,7 @@
                 }
             }
         },
-        "/api/v1/reg": {
+        "/api/v1/user/reg": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -453,7 +714,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/schema.Reg"
+                            "$ref": "#/definitions/schema.RegSwag"
                         }
                     }
                 ],
@@ -472,165 +733,65 @@
                     }
                 }
             }
-        },
-        "/api/v1/updatecost": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "余额管理"
-                ],
-                "summary": "更新消费记录",
-                "parameters": [
-                    {
-                        "description": "body",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.UpdateCostSwag"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
-        "gin.Context": {
-            "type": "object",
-            "properties": {
-                "accepted": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "engine": {
-                    "type": "Engine"
-                },
-                "errors": {
-                    "type": "errorMsgs"
-                },
-                "handlers": {
-                    "type": "HandlersChain"
-                },
-                "index": {
-                    "type": "integer"
-                },
-                "keys": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "params": {
-                    "type": "Params"
-                },
-                "request": {
-                    "type": "string"
-                },
-                "writer": {
-                    "type": "ResponseWriter"
-                },
-                "writermem": {
-                    "type": "responseWriter"
-                }
-            }
-        },
         "schema.AuthSwag": {
             "type": "object",
             "properties": {
-                "email": {
-                    "description": "登录邮箱",
-                    "type": "string"
-                },
                 "password": {
                     "description": "登录密码",
                     "type": "string"
-                }
-            }
-        },
-        "schema.BalanceSwag": {
-            "type": "object",
-            "required": [
-                "code",
-                "password"
-            ],
-            "properties": {
-                "code": {
-                    "description": "充值码",
-                    "type": "string"
                 },
-                "password": {
-                    "description": "密码",
+                "user_name": {
+                    "description": "登录邮箱",
                     "type": "string"
-                }
-            }
-        },
-        "schema.CodeSwag": {
-            "type": "object",
-            "required": [
-                "amount",
-                "code"
-            ],
-            "properties": {
-                "amount": {
-                    "description": "数额",
-                    "type": "number"
-                },
-                "code": {
-                    "description": "充值码",
-                    "type": "string"
-                }
-            }
-        },
-        "schema.CostSwag": {
-            "type": "object",
-            "required": [
-                "amount",
-                "charge_time"
-            ],
-            "properties": {
-                "amount": {
-                    "description": "数额",
-                    "type": "number"
-                },
-                "charge_time": {
-                    "description": "充电时长",
-                    "type": "number"
                 }
             }
         },
         "schema.CurrentUserSwag": {
             "type": "object",
             "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "email": {
+                    "description": "用户名",
+                    "type": "string"
+                },
+                "header": {
+                    "type": "string"
+                },
                 "phone": {
                     "description": "电话",
                     "type": "string"
+                }
+            }
+        },
+        "schema.FarmRecordSwag": {
+            "type": "object",
+            "properties": {
+                "end_time": {
+                    "type": "string"
                 },
-                "username": {
-                    "description": "用户名",
+                "oper_name": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.FarmSwag": {
+            "type": "object",
+            "properties": {
+                "end_time": {
+                    "type": "string"
+                },
+                "point": {
+                    "type": "string"
+                },
+                "star_time": {
                     "type": "string"
                 }
             }
@@ -648,30 +809,59 @@
                 }
             }
         },
-        "schema.Reg": {
+        "schema.PicSwag": {
+            "type": "object",
+            "properties": {
+                "end_time": {
+                    "type": "string"
+                },
+                "point": {
+                    "type": "string"
+                },
+                "star_time": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.PictureSwag": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "point": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.QueryTransNumSwag": {
             "type": "object",
             "required": [
-                "email",
+                "type"
+            ],
+            "properties": {
+                "type": {
+                    "type": "integer"
+                }
+            }
+        },
+        "schema.RegSwag": {
+            "type": "object",
+            "required": [
+                "identity",
                 "password",
-                "password_again",
-                "phone",
                 "username"
             ],
             "properties": {
-                "email": {
-                    "description": "邮箱",
+                "identity": {
+                    "description": "identity",
                     "type": "string"
                 },
                 "password": {
                     "description": "密码",
-                    "type": "string"
-                },
-                "password_again": {
-                    "description": "确认密码",
-                    "type": "string"
-                },
-                "phone": {
-                    "description": "电话",
                     "type": "string"
                 },
                 "username": {
@@ -680,20 +870,50 @@
                 }
             }
         },
-        "schema.UpdateCostSwag": {
+        "schema.RevokeSwag": {
             "type": "object",
-            "required": [
-                "electric",
-                "id"
-            ],
             "properties": {
-                "electric": {
-                    "description": "耗电量",
-                    "type": "number"
+                "identity": {
+                    "type": "string"
                 },
-                "id": {
-                    "description": "记录ID",
+                "user_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.SensorSwag": {
+            "type": "object",
+            "properties": {
+                "end_time": {
+                    "type": "string"
+                },
+                "point": {
+                    "type": "string"
+                },
+                "star_time": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.UploadSwag": {
+            "type": "object",
+            "properties": {
+                "point": {
+                    "type": "string"
+                },
+                "raw": {
+                    "type": "string"
+                },
+                "type": {
                     "type": "integer"
+                }
+            }
+        },
+        "schema.VerifySwag": {
+            "type": "object",
+            "properties": {
+                "hash": {
+                    "type": "string"
                 }
             }
         }
