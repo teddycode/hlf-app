@@ -1,13 +1,11 @@
 package v1
 
 import (
-	"bytes"
 	"encoding/json"
 	"github.com/fabric-app/models"
 	"github.com/fabric-app/models/schema"
 	"github.com/fabric-app/pkg/app"
 	"github.com/fabric-app/pkg/e"
-	"github.com/fabric-app/pkg/logging"
 	"github.com/fabric-app/pkg/setting"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -25,9 +23,10 @@ const (
 // @Accept json
 // @Produce  json
 // @Param   body  body   schema.SensorSwag   true "body"
+// @Security ApiKeyAuth
 // @Success 200 {string} gin.Context.JSON
 // @Failure 401 {string} gin.Context.JSON
-// @Router /api/v1/trace/sensors  [POST]
+// @Router /api/v1/trace/sensor  [POST]
 func Sensors(c *gin.Context) {
 	appG := app.Gin{C: c}
 	var reqInfo schema.SensorSwag
@@ -49,9 +48,10 @@ func Sensors(c *gin.Context) {
 // @Accept json
 // @Produce  json
 // @Param   body  body   schema.PicSwag   true "body"
+// @Security ApiKeyAuth
 // @Success 200 {string} gin.Context.JSON
 // @Failure 401 {string} gin.Context.JSON
-// @Router /api/v1/trace/pictures  [POST]
+// @Router /api/v1/trace/picture  [POST]
 func Pictures(c *gin.Context) {
 	appG := app.Gin{C: c}
 	var reqInfo schema.PicSwag
@@ -73,9 +73,10 @@ func Pictures(c *gin.Context) {
 // @Accept json
 // @Produce  json
 // @Param   body  body   schema.FarmSwag   true "body"
+// @Security ApiKeyAuth
 // @Success 200 {string} gin.Context.JSON
 // @Failure 401 {string} gin.Context.JSON
-// @Router /api/v1/trace/farm  [POST]
+// @Router /api/v1/trace/farmData  [POST]
 func Farms(c *gin.Context) {
 	appG := app.Gin{C: c}
 	var reqInfo schema.FarmSwag
@@ -100,40 +101,41 @@ func Farms(c *gin.Context) {
 // @Success 200 {string} gin.Context.JSON
 // @Failure 401 {string} gin.Context.JSON
 // @Router /api/v1/trace/downloadPic  [POST]
-func DownloadPic(c *gin.Context) {
-	appG := app.Gin{C: c}
-	var reqInfo schema.PictureSwag
-	err := c.BindJSON(&reqInfo)
-	if err != nil {
-		appG.Response(http.StatusOK, e.INVALID_PARAMS, "Invalid paras in json")
-	}
-	file, err := models.GetPicFile(reqInfo.Point, reqInfo.Date, reqInfo.Name)
-	if err != nil {
-		appG.Response(http.StatusOK, e.ERROR_FILE_GET_FAILED, "Get picture file failed.")
-	}
-	defer file.Close()
-
-	buf := bytes.Buffer{}
-	size, err := buf.ReadFrom(file)
-	if err != nil {
-		appG.Response(http.StatusOK, e.ERROR_FILE_GET_FAILED, "File buffer create failed.")
-		return
-	}
-	logging.Debug("File load success,size:", size)
-
-	appG.C.Writer.Header().Add("Content-Type", "application/octet-stream")
-	appG.C.Writer.Header().Add("Content-Disposition", "attachment;filename="+file.Name())
-	appG.Response(http.StatusOK, e.SUCCESS, buf.Bytes())
-}
+//func DownloadPic(c *gin.Context) {
+//	appG := app.Gin{C: c}
+//	var reqInfo schema.PictureSwag
+//	err := c.BindJSON(&reqInfo)
+//	if err != nil {
+//		appG.Response(http.StatusOK, e.INVALID_PARAMS, "Invalid paras in json")
+//	}
+//	file, err := transh.GetPicFile(reqInfo.Point, reqInfo.Date, reqInfo.Name)
+//	if err != nil {
+//		appG.Response(http.StatusOK, e.ERROR_FILE_GET_FAILED, "Get picture file failed.")
+//	}
+//	defer file.Close()
+//
+//	buf := bytes.Buffer{}
+//	size, err := buf.ReadFrom(file)
+//	if err != nil {
+//		appG.Response(http.StatusOK, e.ERROR_FILE_GET_FAILED, "File buffer create failed.")
+//		return
+//	}
+//	logging.Debug("File load success,size:", size)
+//
+//	appG.C.Writer.Header().Add("Content-Type", "application/octet-stream")
+//	appG.C.Writer.Header().Add("Content-Disposition", "attachment;filename="+file.Name())
+//	appG.Response(http.StatusOK, e.SUCCESS, buf.Bytes())
+//}
 
 // @Summary  链上信息检验
 // @Tags 溯源查询
 // @Accept json
 // @Produce  json
-// @Param   body  body   schema.VerifySwag   true "body"
+// @Param   body  body   schema.VerifySwag   true "输入交易哈希，返回交易内容（包含文件内容哈希值）"
+// @Security ApiKeyAuth
 // @Success 200 {string} gin.Context.JSON
 // @Failure 401 {string} gin.Context.JSON
-// @Router /api/v1/trace/verifier  [POST]
+// @Router /api/v1/trace/verify  [POST]
 func Verifier(c *gin.Context) {
 	appG := app.Gin{C: c}
 	var reqInfo schema.VerifySwag
@@ -158,7 +160,7 @@ func Verifier(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Success 200 {string} gin.Context.JSON
 // @Failure 400 {string} gin.Context.JSON
-// @Router  /api/v1/bcs/upload  [POST]
+// @Router  /api/v1/trace/upload  [POST]
 func Uploader(c *gin.Context) {
 	appG := app.Gin{C: c}
 	var reqInfo schema.UploadSwag

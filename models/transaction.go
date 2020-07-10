@@ -14,11 +14,11 @@ const (
 
 // transaction
 type Transaction struct {
-	ID        int    `json:"id"`
+	ID        int    `json:"id" gorm:"PRIMARY_KEY"`
 	Timestamp int    `json:"timestamp"`
-	Type      string `json:"type"`
-	Hash      string `json:"hash"`
-	Point     string `json:"point"`
+	Type      string `json:"type" gorm:"type:varchar(2)"`
+	Hash      string `json:"hash" gorm:"type:varchar(64)"`
+	Point     string `json:"point" gorm:"type:varchar(20)"`
 }
 
 // new tx record

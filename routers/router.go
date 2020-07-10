@@ -24,36 +24,36 @@ func InitRouter() *gin.Engine {
 	apiv1 := r.Group("/api/v1")
 	//用户登录
 	apiv1.POST("user/login", v1.Auth)
+	//用户注册
+	apiv1.POST("user/register", v1.Reg)
 
 	apiv1.Use(jwt.JWT()) //令牌 验证中间件
 	{
 		/* 用户管理类 */
-		//用户注册
-		apiv1.POST("user/register", v1.Reg)
 		//当前用户信息查询
 		apiv1.GET("user/current", v1.CurrentUser)
-		//刷新token
+		//刷新用户token
 		apiv1.GET("user/refresh", v1.RefreshToken)
 		//用户登出
 		apiv1.POST("user/logout", v1.Logout)
-		//登录用户修改密码
+		//用户密码修改
 		apiv1.POST("user/password", v1.Password)
-		//登录用户修改个人信息
+		//用户个人信息修改
 		apiv1.POST("user/update", v1.ModifyUser)
 		//用户农事数据上传
 		apiv1.POST("user/record", v1.Record)
-		// 查询农事操作类型
+		//查询农事操作类型
 		apiv1.GET("user/operType", v1.Operations)
-		// 更换用户头像
+		//更换用户头像
 		apiv1.GET("user/setHeader", v1.SetHeader)
 		//用户头像获取
 		apiv1.GET("user/getHeader", v1.GetHeader)
-		// 用户注销接
+		//用户账号注销
 		apiv1.POST("user/revoke", v1.Revoker)
 
 		/* 区块链监控类 */
-		// 获取当前区块高度、信息数、总交易数、活跃节点数
-		apiv1.GET("bcs/chainInfo", v1.BcInfo)
+		//获取当前区块高度、信息数、总交易数、活跃节点数
+		apiv1.GET("bcs/info", v1.BcInfo)
 		//条件查询交易数
 		apiv1.POST("bcs/transactions", v1.Transactions)
 		//查询所有采集点及其信息数量
@@ -62,15 +62,15 @@ func InitRouter() *gin.Engine {
 		/*溯源查询类*/
 		//传感器数据溯源
 		apiv1.POST("trace/sensor", v1.Sensors)
-		// 图片信息溯源
+		//图片信息溯源
 		apiv1.POST("trace/picture", v1.Pictures)
-		// 农事数据溯源
+		//农事数据溯源
 		apiv1.POST("trace/farmData", v1.Farms)
-		// 下载溯源图片
-		apiv1.POST("trace/downloadPic", v1.DownloadPic)
-		// 通过哈希值校验链上信息
+		//下载溯源图片
+		//apiv1.POST("trace/downloadPic", v1.DownloadPic)
+		//通过哈希值校验链上信息
 		apiv1.POST("trace/verify", v1.Verifier)
-		// 接收数据并且上链
+		//接收数据并且上链
 		apiv1.POST("trace/upload", v1.Uploader)
 	}
 

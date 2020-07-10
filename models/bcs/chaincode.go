@@ -25,8 +25,7 @@ func (c *Client) InstallCC(cc, path, ver, peer string) error {
 	}
 
 	// new request of installing chaincode
-	req := resmgmt.InstallCCRequest{
-		Name:    cc,
+	req := resmgmt.InstallCCRequest{		Name:    cc,
 		Path:    path,
 		Version: ver,
 		Package: ccPkg,

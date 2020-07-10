@@ -1,20 +1,20 @@
 package schema
 
 type Blockchain struct {
-	Height       string `json:"height"`
-	Messages     string `json:"messages"`
-	transactions string `json:"transactions"`
-	Nodes        string `json:"nodes"`
+	Height       string `json:"height"`  // 区块高度
+	Messages     string `json:"messages"`  // 上链信息数量
+	transactions string `json:"transactions"` // 交易数量
+	Nodes        string `json:"nodes"` // 节点数量
 }
 
 type VerifySwag struct {
-	Hash string `json:"hash"`
+	Hash string `json:"hash" example:"45d44ca55d"`
 }
 
 type UploadSwag struct {
-	Type  string `json:"type"`
-	Point string `json:"point"`
-	Raw   string `json:"raw"`
+	Type  string `json:"type" example:"p"`
+	Point string `json:"point" example:"point001"`
+	Raw   string `json:"raw" example:"{\"point\":\"point001\",\"type\":\"temperature\",\"point\":\"26.2\",\"unit\":\"C\"}"`
 }
 
 type BCSensor struct {

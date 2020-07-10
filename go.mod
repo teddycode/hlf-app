@@ -5,7 +5,6 @@ go 1.13
 require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/astaxie/beego v1.12.0
-	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fsouza/go-dockerclient v1.6.5 // indirect
 	github.com/gin-gonic/gin v1.4.0
@@ -14,7 +13,7 @@ require (
 	github.com/go-openapi/swag v0.19.9 // indirect
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
 	github.com/golang/protobuf v1.3.2
-	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0 // indirect
+	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0 // indirect
 	github.com/hashicorp/go-version v1.2.1 // indirect
 	github.com/hyperledger/fabric v1.4.6
 	github.com/hyperledger/fabric-amcl v0.0.0-20200424173818-327c9e2cf77a // indirect
@@ -30,8 +29,6 @@ require (
 	github.com/swaggo/swag v1.6.7
 	github.com/sykesm/zap-logfmt v0.0.3 // indirect
 	github.com/unknwon/com v1.0.1
-	github.com/urfave/cli v1.22.4 // indirect
-	github.com/urfave/cli/v2 v2.2.0 // indirect
 	go.uber.org/zap v1.15.0 // indirect
 	golang.org/x/net v0.0.0-20200625001655-4c5254603344 // indirect
 	golang.org/x/text v0.3.3 // indirect

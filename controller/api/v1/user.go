@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"bytes"
 	"encoding/json"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/fabric-app/models"
@@ -52,35 +51,34 @@ type currentUser struct {
 // @Tags 用户管理
 // @Accept json
 // @Produce  json
-// @Param   body  body   schema.RegSwag   true "body"
+// @Param   account  body   schema.RegSwag   true "用户名、身份证号、密码"
 // @Success 200 {string} gin.Context.JSON
 // @Failure 401 {string} gin.Context.JSON
-// @Router /api/v1/user/reg  [POST]
+// @Router /api/v1/user/register  [POST]
 func Reg(c *gin.Context) {
 	appG := app.Gin{C: c}
 	var reqInfo schema.RegSwag //用户表字段
-	var data interface{}
 	err := c.BindJSON(&reqInfo)
 	if err != nil {
 		appG.Response(http.StatusOK, e.INVALID_PARAMS, nil)
 		return
 	}
 	// check if admin user
-	res, err := BCS.QueryCC("users", "check",
+	res, err := BCS.QueryCC("user", "check",
 		[]string{reqInfo.Username, hash.EncodeMD5(reqInfo.Identity)}, setting.Peers[0])
 	if err != nil {
-		appG.Response(http.StatusOK, e.ERROR_CC_QUERY_FAILED, nil)
+		appG.Response(http.StatusOK, e.ERROR_CC_QUERY_FAILED, err.Error())
 		return
 	}
-	role, err := strconv.ParseInt(string(res), 10, 32)
+	_, err = strconv.ParseInt(string(res), 10, 32)
 	if err != nil {
 		appG.Response(http.StatusOK, e.ERROR, "Convert res failed.")
 		return
 	}
-	if role != ROLE_ADMIN {
-		appG.Response(http.StatusOK, e.ERROR_AUTH_NOT_PERMISSION, "No permission")
-		return
-	}
+	//if role != ROLE_ADMIN {
+	//	appG.Response(http.StatusOK, e.ERROR_AUTH_NOT_PERMISSION, "No permission")
+	//	return
+	//}
 	passwdEncode := hash.EncodeMD5(reqInfo.Password)
 	// register in ca
 	str, ok := BCS.RegisterUser(reqInfo.Username, "org1", passwdEncode, "user")
@@ -89,12 +87,11 @@ func Reg(c *gin.Context) {
 		return
 	}
 	// register identity in blockchain
-	txID, err := BCS.InvokeCC("user", "add",
-		[][]byte{[]byte(reqInfo.Username), []byte(hash.EncodeMD5(reqInfo.Identity))}, setting.Peers)
+	txID, err := BCS.InvokeCC("user", "add", [][]byte{[]byte(reqInfo.Username), []byte(strconv.Itoa(ROLE_USER)), []byte(hash.EncodeMD5(reqInfo.Identity))}, setting.Peers)
 	if err != nil {
 		str, _ := BCS.RevokeUser(reqInfo.Username, "org1", reqInfo.Password, "user")
 		logging.Error("Invoke failed: add user identity to chain failed!. Revoke res:", str)
-		appG.Response(http.StatusOK, e.ERROR_CC_INVOKE_FAILED, data)
+		appG.Response(http.StatusOK, e.ERROR_CC_INVOKE_FAILED, err.Error())
 		return
 	}
 	logging.Debug("chaincode invoke success! tx id:" + txID)
@@ -103,7 +100,7 @@ func Reg(c *gin.Context) {
 		logging.Debug("Found old user and deleted:", err)
 	}
 	var newUser models.User
-	newUser.Username = reqInfo.Username
+	newUser.UserName = reqInfo.Username
 	newUser.Identity = reqInfo.Identity
 	newUser.Role = ROLE_USER
 	newUser.Password = passwdEncode //密码md5值保存
@@ -120,14 +117,14 @@ func Reg(c *gin.Context) {
 	appG.Response(http.StatusOK, e.ERROR_ADD_FAIL, isSuccess)
 }
 
-// @Summary   用户登录 获取token 信息
+// @Summary  用户登录
 // @Tags 用户管理
 // @Accept json
 // @Produce  json
-// @Param   body  body   schema.AuthSwag   true "body"
+// @Param   account  body   schema.AuthSwag   true "用户名、密码"
 // @Success 200 {string} gin.Context.JSON
 // @Failure 400 {string} gin.Context.JSON
-// @Router /api/v1/user/auth  [POST]
+// @Router /api/v1/user/login  [POST]
 func Auth(c *gin.Context) {
 	appG := app.Gin{C: c}
 	var reqInfo auth
@@ -138,8 +135,7 @@ func Auth(c *gin.Context) {
 		return
 	}
 
-	res, ok := BCS.EnrollUser(reqInfo.Username,
-		"org1", hash.EncodeMD5(reqInfo.Password), "user")
+	res, ok := BCS.EnrollUser(reqInfo.Username, "org1", hash.EncodeMD5(reqInfo.Password), "user")
 	if !ok {
 		appG.Response(http.StatusOK, e.ERROR_CA_ENROLL_FAILED, res)
 		return
@@ -165,10 +161,10 @@ func Auth(c *gin.Context) {
 // @Tags 用户管理
 // @Accept json
 // @Produce  json
-// @Param   body  body   schema.RevokeSwag   true "body"
+// @Param   account  body   schema.RevokeSwag   true "注销"
 // @Success 200 {string} gin.Context.JSON
 // @Failure 400 {string} gin.Context.JSON
-// @Router /api/v1/user/auth  [POST]
+// @Router /api/v1/user/revoke  [POST]
 func Revoker(c *gin.Context) {
 	appG := app.Gin{C: c}
 	var reqInfo schema.RevokeSwag
@@ -180,7 +176,7 @@ func Revoker(c *gin.Context) {
 	}
 
 	// check if admin user
-	res, err := BCS.QueryCC("users", "check",
+	res, err := BCS.QueryCC("user", "check",
 		[]string{reqInfo.UserName, hash.EncodeMD5(reqInfo.Identity)}, setting.Peers[0])
 	if err != nil {
 		appG.Response(http.StatusOK, e.ERROR_CC_QUERY_FAILED, nil)
@@ -224,7 +220,7 @@ func Revoker(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Success 200 {string} gin.Context.JSON
 // @Failure 400 {string} gin.Context.JSON
-// @Router  /api/v1/user/refreshtoken  [GET]
+// @Router  /api/v1/user/refresh  [GET]
 func RefreshToken(c *gin.Context) {
 	var data interface{}
 	var code int
@@ -300,7 +296,7 @@ func Logout(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Success 200 {string} gin.Context.JSON
 // @Failure 400 {string} gin.Context.JSON
-// @Router  /api/v1/user/currentuser   [GET]
+// @Router  /api/v1/user/current   [GET]
 func CurrentUser(c *gin.Context) {
 	var code int
 	var data interface{}
@@ -331,7 +327,7 @@ func CurrentUser(c *gin.Context) {
 				Id:       user.ID,
 				Email:    user.Email,
 				Role:     user.Role,
-				Username: user.Username,
+				Username: user.UserName,
 				Phone:    user.Phone,
 				Address:  user.Address,
 			}
@@ -354,10 +350,10 @@ func CurrentUser(c *gin.Context) {
 // @Accept json
 // @Produce  json
 // @Security ApiKeyAuth
-// @Param   body  body   schema.CurrentUserSwag   true "body"
+// @Param   account  body   schema.CurrentUserSwag   true "字段更新"
 // @Success 200 {string} gin.Context.JSON
 // @Failure 400 {string} gin.Context.JSON
-// @Router  /api/v1/user/modify   [POST]
+// @Router  /api/v1/user/update   [POST]
 func ModifyUser(c *gin.Context) {
 	var code int
 	var data interface{}
@@ -408,14 +404,13 @@ func ModifyUser(c *gin.Context) {
 			"data": "success",
 		})
 	}
-
 }
 
-// @Summary 登录用户修改密码
+// @Summary 修改用户密码
 // @Tags 用户管理
 // @Accept json
 // @Produce  json
-// @Param   body  body   schema.PasswordSwag   true "body"
+// @Param   account  body   schema.PasswordSwag   true "旧密码、新密码"
 // @Security ApiKeyAuth
 // @Success 200 {string} gin.Context.JSON
 // @Failure 400 {string} gin.Context.JSON
@@ -474,7 +469,7 @@ func Password(c *gin.Context) {
 // @Tags 用户管理
 // @Accept json
 // @Produce  json
-// @Param   body  body   schema.FarmRecordSwag   true "body"
+// @Param   account  body   schema.FarmRecordSwag   true "农事记录上传"
 // @Security ApiKeyAuth
 // @Success 200 {string} gin.Context.JSON
 // @Failure 400 {string} gin.Context.JSON
@@ -562,12 +557,14 @@ func getUserNameFromToken(c *gin.Context) (string, int) {
 
 // @Summary 用户更换头像
 // @Tags 用户管理
-// @Accept json
+// @Description upload file
+// @Accept multipart/form-data
 // @Produce  json
+// @Param file formData file true "用户头像"
 // @Security ApiKeyAuth
 // @Success 200 {string} gin.Context.JSON
 // @Failure 400 {string} gin.Context.JSON
-// @Router  /api/v1/user/header   [GET]
+// @Router  /api/v1/user/setHeader   [GET]
 func SetHeader(c *gin.Context) {
 	appG := app.Gin{C: c}
 	var userName string
@@ -586,26 +583,28 @@ func SetHeader(c *gin.Context) {
 		appG.Response(http.StatusOK, code, "Get user name failed.")
 		return
 	}
-	path := path.Join(HEADER_IMAGE_PATH, userName, ".jpg")
-	err = c.SaveUploadedFile(f, path)
+	path1 := path.Join(models.HEADER_IMAGE_PATH, userName+"_"+f.Filename)
+	err = c.SaveUploadedFile(f, path1)
 	if err != nil {
-		appG.Response(http.StatusOK, e.ERROR_FILE_SAVE_FAILED, map[string]interface{}{
-			"data": "Save file failed",
-		})
+		appG.Response(http.StatusOK, e.ERROR_FILE_SAVE_FAILED, "Save file failed")
 		return
 	}
-	models.UpdateUserheader(userName, userName) // update table
+	_, err = models.UpdateUserheader(userName, f.Filename) // update table
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_DB_ERROR, "save images  failed!")
+		return
+	}
 	appG.Response(http.StatusOK, e.SUCCESS, "OK")
 }
 
 // @Summary 用户头像获取
 // @Tags 用户管理
 // @Accept json
-// @Produce  json
+// @Produce application/octet-stream
 // @Security ApiKeyAuth
 // @Success 200 {string} gin.Context.JSON
 // @Failure 400 {string} gin.Context.JSON
-// @Router  /api/v1/user/operType   [GET]
+// @Router  /api/v1/user/getHeader   [GET]
 func GetHeader(c *gin.Context) {
 	appG := app.Gin{C: c}
 	userName, code := getUserNameFromToken(c)
@@ -613,20 +612,22 @@ func GetHeader(c *gin.Context) {
 		appG.Response(http.StatusOK, code, "Token parse error.")
 		return
 	}
-	file, err := models.GetUserHeader(userName)
+
+	fn, err := models.GetUserHeader(userName)
 	if err != nil {
 		appG.Response(http.StatusOK, e.ERROR_NOT_EXIST, "Empty")
 		return
 	}
-	buf := bytes.Buffer{}
-	size, err := buf.ReadFrom(file)
-	if err != nil {
-		appG.Response(http.StatusOK, e.ERROR_FILE_GET_FAILED, "File buffer create failed.")
-		return
-	}
-	logging.Debug("Header images load success,size:", size)
+	//buf := bytes.Buffer{}
+	//size, err := buf.ReadFrom(file)
+	//if err != nil {
+	//	appG.Response(http.StatusOK, e.ERROR_FILE_GET_FAILED, "File buffer create failed.")
+	//	return
+	//}
+	//logging.Debug("Header images load success,size:", size)
 
 	appG.C.Writer.Header().Add("Content-Type", "application/octet-stream")
-	appG.C.Writer.Header().Add("Content-Disposition", "attachment;filename="+file.Name())
-	appG.Response(http.StatusOK, e.SUCCESS, buf.Bytes())
+	appG.C.Writer.Header().Add("Content-Disposition", "attachment;filename="+fn+".jpg")
+	//	appG.Response(http.StatusOK, e.SUCCESS, buf.Bytes())
+	appG.C.File(path.Join(models.HEADER_IMAGE_PATH, userName+"_"+fn))
 }

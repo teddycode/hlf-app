@@ -6,8 +6,8 @@ import (
 
 // farm type
 type FarmType struct {
-	ID    int    `json:"id"`
-	value string `json:"value"`
+	ID    int    `json:"id" gorm:"primary_key"`
+	Value string `json:"value" gorm:"type:varchar(20)"`
 }
 
 // new  record

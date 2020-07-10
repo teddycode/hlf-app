@@ -52,9 +52,21 @@ func init() {
 		return tablePrefix + defaultTableName
 	}
 
-	db.SingularTable(true)
+	db.SingularTable(false)
 	db.DB().SetMaxIdleConns(10)
 	db.DB().SetMaxOpenConns(100)
+
+	//createTables(db)
+
+}
+
+func createTables(db *gorm.DB) {
+	//if db.HasTable(&User{}) {  // 创建 User 表
+	//	db.AutoMigrate(&User{})
+	//}else {
+	//	db.CreateTable(&User{})
+	//}
+	db.AutoMigrate(&User{}, &Transaction{}, &FarmType{})
 }
 
 func CloseDB() {

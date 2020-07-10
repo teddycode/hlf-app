@@ -15,16 +15,16 @@ const HEADER_IMAGE_PATH = "./test/header/images/"
 // user table structure
 type User struct {
 	Model
-	Username string `json:"username"`
-	Identity string `json:"identity"`
-	Password string `json:"password"`
-	Phone    string `json:"phone"`
-	Email    string `json:"email"`
-	Role     int    `json:"role"`
-	CaSecure string `json:"ca_secure"`
-	Secret   string `json:"secret"`
-	Address  string `json:"address"`
-	Header   string `json:"header"`
+	UserName string `json:"user_name" gorm:"type:varchar(20);unique;not null"`
+	Identity string `json:"identity" gorm:"type:varchar(20)"`
+	Password string `json:"password" gorm:"type:varchar(20)"`
+	Phone    string `json:"phone" gorm:"type:varchar(12)"`
+	Email    string `json:"email" gorm:"type:varchar(20)"`
+	Role     int    `json:"role" gorm:"type:int;default 1"`
+	CaSecure string `json:"ca_secure" gorm:"type:varchar(20)"`
+	Secret   string `json:"secret" gorm:"type:varchar(20)"`
+	Address  string `json:"address" gorm:"type:varchar(50)"`
+	Header   string `json:"header" gorm:"type:varchar(10)"`
 }
 
 // create user info
@@ -59,7 +59,7 @@ func FindUserById(id int) (User, error) {
 // by name
 func FindUserByName(name string) (User, error) {
 	var user User
-	err := db.Where("username = ?", name).First(&user).Error
+	err := db.Where("user_name = ?", name).First(&user).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return user, err
 	}
@@ -84,7 +84,7 @@ func UpdateUserInfo(newUser *User) (int, error) {
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return 0, err
 	}
-	oldUser.Username = newUser.Username
+	oldUser.UserName = newUser.UserName
 	oldUser.Email = newUser.Email
 	oldUser.Address = newUser.Address
 	oldUser.Phone = newUser.Phone
@@ -117,7 +117,7 @@ func UpdateUserSecret(user *User) (int, error) {
 // update user header
 func UpdateUserheader(name, header string) (int, error) {
 	var user User
-	db.Where("username = ?", name).First(&user)
+	db.Where("user_name = ?", name).First(&user)
 	user.Header = header
 	err := db.Save(user).Error
 	if err != nil {
@@ -147,7 +147,7 @@ func UpdateUserNewPassword(user *User, newPassword string) (int, error) {
 
 // store user header
 func SaveUserHeader(username string, data []byte) (int, error) {
-	path := path.Join(HEADER_IMAGE_PATH, username, ".jpg")
+	path := path.Join(HEADER_IMAGE_PATH, username+".jpg")
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_TRUNC, 0666)
 	defer file.Close()
 	if err != nil {
@@ -162,12 +162,27 @@ func SaveUserHeader(username string, data []byte) (int, error) {
 	return count, err
 }
 
-// get user header
-func GetUserHeader(username string) (*os.File, error) {
-	path := path.Join(HEADER_IMAGE_PATH, username, ".jpg")
-	file, err := os.OpenFile(path, os.O_RDONLY|os.O_TRUNC, 0666)
+// get user header file name
+func GetUserHeader(username string) (string, error) {
+	var user User
+	err := db.Select("header").Where("user_name = ?", username).Find(&user).Error
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return file, err
+	return user.Header, err
 }
+
+//
+//// get user header
+//func GetUserHeader(username string) (*os.File, error) {
+//	path1 := path.Join(HEADER_IMAGE_PATH, username+".jpg")
+//	file, err := os.OpenFile(path1, os.O_RDONLY|os.O_TRUNC, 0666)
+//	if err != nil || file == nil {
+//		path1 = path.Join(HEADER_IMAGE_PATH, "default.jpg")
+//		file, err = os.OpenFile(path1, os.O_RDONLY|os.O_TRUNC, 0666)
+//		if err != nil {
+//			return nil, err
+//		}
+//	}
+//	return file, err
+//}

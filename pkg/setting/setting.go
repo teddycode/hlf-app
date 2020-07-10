@@ -29,10 +29,10 @@ func init() {
 	var err error
 	var err1 error
 
-	Cfg, err = ini.Load("conf/app.ini")
+	Cfg, err = ini.Load("config/app.ini")
 	if err != nil {
 		//如果是test修改测试路径
-		Cfg, err1 = ini.Load("../conf/app.ini")
+		Cfg, err1 = ini.Load("../config/app.ini")
 		if err1 != nil {
 			log.Fatalf("Fail to parse 'conf/app.ini': %v", err)
 		}

@@ -4,67 +4,75 @@ definitions:
     properties:
       password:
         description: 登录密码
+        example: "1234"
         type: string
       user_name:
         description: 登录邮箱
+        example: teddy
         type: string
     type: object
   schema.CurrentUserSwag:
     properties:
       address:
+        example: 广州市白云区xx路2号
         type: string
       email:
         description: 用户名
+        example: 123456@qq.com
         type: string
       header:
+        example: default
         type: string
       phone:
         description: 电话
+        example: "18677337725"
         type: string
     type: object
   schema.FarmRecordSwag:
     properties:
       end_time:
+        example: "1594382165"
         type: string
       oper_name:
+        example: 施肥
         type: string
       start_time:
+        example: "1594382265"
         type: string
     type: object
   schema.FarmSwag:
     properties:
       end_time:
+        example: "1595382265"
         type: string
       point:
+        example: point001
         type: string
       star_time:
+        example: "1594382265"
         type: string
     type: object
   schema.PasswordSwag:
     properties:
       new_password:
         description: 新密码
+        example: "123456"
         type: string
       old_password:
         description: 旧密码
+        example: "1234"
         type: string
     type: object
   schema.PicSwag:
     properties:
       end_time:
+        example: "1595382265"
         type: string
       point:
+        example: point001
         type: string
       star_time:
-        type: string
-    type: object
-  schema.PictureSwag:
-    properties:
-      date:
-        type: string
-      name:
-        type: string
-      point:
+        example: "1594382265"
         type: string
     type: object
   schema.QueryTransNumSwag:
@@ -78,12 +86,15 @@ definitions:
     properties:
       identity:
         description: identity
+        example: "4522261111111111"
         type: string
       password:
         description: 密码
+        example: "1234"
         type: string
       username:
         description: 用户名
+        example: teddy
         type: string
     required:
     - identity
@@ -93,37 +104,46 @@ definitions:
   schema.RevokeSwag:
     properties:
       identity:
+        example: "4522261111111111"
         type: string
       user_name:
+        example: teddy
         type: string
     type: object
   schema.SensorSwag:
     properties:
       end_time:
+        example: "1595382265"
         type: string
       point:
+        example: point001
         type: string
       star_time:
+        example: "1594382265"
         type: string
     type: object
   schema.UploadSwag:
     properties:
       point:
+        example: point001
         type: string
       raw:
+        example: '{"point":"point001","type":"temperature","point":"26.2","unit":"C"}'
         type: string
       type:
-        type: integer
+        example: p
+        type: string
     type: object
   schema.VerifySwag:
     properties:
       hash:
+        example: 45d44ca55d
         type: string
     type: object
-host: localhost:8000
+host: 202.193.60.112:8000
 info:
   contact: {}
-  description: Charge
+  description: trace
   license: {}
   title: fabirc bcs API
   version: "1.0"
@@ -195,7 +215,88 @@ paths:
       summary: 条件查询交易数
       tags:
       - 区块链监控
-  /api/v1/bcs/upload:
+  /api/v1/trace/farmData:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.FarmSwag'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 农事数据溯源
+      tags:
+      - 溯源查询
+  /api/v1/trace/picture:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.PicSwag'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 图片信息溯源
+      tags:
+      - 溯源查询
+  /api/v1/trace/sensor:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.SensorSwag'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 传感器数据溯源
+      tags:
+      - 溯源查询
+  /api/v1/trace/upload:
     post:
       consumes:
       - application/json
@@ -222,112 +323,12 @@ paths:
       summary: 数据上链接口
       tags:
       - 溯源查询
-  /api/v1/trace/downloadPic:
+  /api/v1/trace/verify:
     post:
       consumes:
       - application/json
       parameters:
-      - description: body
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/schema.PictureSwag'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-      summary: 图片下载
-      tags:
-      - 溯源查询
-  /api/v1/trace/farm:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: body
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/schema.FarmSwag'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-      summary: 农事数据溯源
-      tags:
-      - 溯源查询
-  /api/v1/trace/pictures:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: body
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/schema.PicSwag'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-      summary: 图片信息溯源
-      tags:
-      - 溯源查询
-  /api/v1/trace/sensors:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: body
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/schema.SensorSwag'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-      summary: 传感器数据溯源
-      tags:
-      - 溯源查询
-  /api/v1/trace/verifier:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: body
+      - description: 输入交易哈希，返回交易内容（包含文件内容哈希值）
         in: body
         name: body
         required: true
@@ -344,35 +345,12 @@ paths:
           description: Unauthorized
           schema:
             type: string
+      security:
+      - ApiKeyAuth: []
       summary: 链上信息检验
       tags:
       - 溯源查询
-  /api/v1/user/auth:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: body
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/schema.RevokeSwag'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-      summary: 用户注销
-      tags:
-      - 用户管理
-  /api/v1/user/currentuser:
+  /api/v1/user/current:
     get:
       consumes:
       - application/json
@@ -392,12 +370,12 @@ paths:
       summary: 获取登录用户信息
       tags:
       - 用户管理
-  /api/v1/user/header:
+  /api/v1/user/getHeader:
     get:
       consumes:
       - application/json
       produces:
-      - application/json
+      - application/octet-stream
       responses:
         "200":
           description: OK
@@ -409,7 +387,32 @@ paths:
             type: string
       security:
       - ApiKeyAuth: []
-      summary: 用户更换头像
+      summary: 用户头像获取
+      tags:
+      - 用户管理
+  /api/v1/user/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 用户名、密码
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/schema.AuthSwag'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: 用户登录
       tags:
       - 用户管理
   /api/v1/user/logout:
@@ -432,33 +435,6 @@ paths:
       summary: 用户登出
       tags:
       - 用户管理
-  /api/v1/user/modify:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: body
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/schema.CurrentUserSwag'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-      security:
-      - ApiKeyAuth: []
-      summary: 修改登录用户信息
-      tags:
-      - 用户管理
   /api/v1/user/operType:
     get:
       consumes:
@@ -476,7 +452,7 @@ paths:
             type: string
       security:
       - ApiKeyAuth: []
-      summary: 用户头像获取
+      summary: 用户查询农事数据类型
       tags:
       - 用户管理
   /api/v1/user/password:
@@ -484,9 +460,9 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: body
+      - description: 旧密码、新密码
         in: body
-        name: body
+        name: account
         required: true
         schema:
           $ref: '#/definitions/schema.PasswordSwag'
@@ -503,7 +479,7 @@ paths:
             type: string
       security:
       - ApiKeyAuth: []
-      summary: 登录用户修改密码
+      summary: 修改用户密码
       tags:
       - 用户管理
   /api/v1/user/record:
@@ -511,9 +487,9 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: body
+      - description: 农事记录上传
         in: body
-        name: body
+        name: account
         required: true
         schema:
           $ref: '#/definitions/schema.FarmRecordSwag'
@@ -533,7 +509,7 @@ paths:
       summary: 用户记录上传
       tags:
       - 用户管理
-  /api/v1/user/refreshtoken:
+  /api/v1/user/refresh:
     get:
       consumes:
       - application/json
@@ -553,14 +529,14 @@ paths:
       summary: 刷新token
       tags:
       - 用户管理
-  /api/v1/user/reg:
+  /api/v1/user/register:
     post:
       consumes:
       - application/json
       parameters:
-      - description: body
+      - description: 用户名、身份证号、密码
         in: body
-        name: body
+        name: account
         required: true
         schema:
           $ref: '#/definitions/schema.RegSwag'
@@ -576,6 +552,85 @@ paths:
           schema:
             type: string
       summary: 注册用户
+      tags:
+      - 用户管理
+  /api/v1/user/revoke:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 注销
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/schema.RevokeSwag'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: 用户注销
+      tags:
+      - 用户管理
+  /api/v1/user/setHeader:
+    get:
+      consumes:
+      - multipart/form-data
+      description: upload file
+      parameters:
+      - description: 用户头像
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 用户更换头像
+      tags:
+      - 用户管理
+  /api/v1/user/update:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 字段更新
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/schema.CurrentUserSwag'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 修改登录用户信息
       tags:
       - 用户管理
 securityDefinitions:

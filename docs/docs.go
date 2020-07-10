@@ -135,7 +135,139 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/bcs/upload": {
+        "/api/v1/trace/farmData": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "溯源查询"
+                ],
+                "summary": "农事数据溯源",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.FarmSwag"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/trace/picture": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "溯源查询"
+                ],
+                "summary": "图片信息溯源",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.PicSwag"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/trace/sensor": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "溯源查询"
+                ],
+                "summary": "传感器数据溯源",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.SensorSwag"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/trace/upload": {
             "post": {
                 "security": [
                     {
@@ -179,164 +311,13 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/trace/downloadPic": {
+        "/api/v1/trace/verify": {
             "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "溯源查询"
-                ],
-                "summary": "图片下载",
-                "parameters": [
+                "security": [
                     {
-                        "description": "body",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.PictureSwag"
-                        }
+                        "ApiKeyAuth": []
                     }
                 ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/trace/farm": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "溯源查询"
-                ],
-                "summary": "农事数据溯源",
-                "parameters": [
-                    {
-                        "description": "body",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.FarmSwag"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/trace/pictures": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "溯源查询"
-                ],
-                "summary": "图片信息溯源",
-                "parameters": [
-                    {
-                        "description": "body",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.PicSwag"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/trace/sensors": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "溯源查询"
-                ],
-                "summary": "传感器数据溯源",
-                "parameters": [
-                    {
-                        "description": "body",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.SensorSwag"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/trace/verifier": {
-            "post": {
                 "consumes": [
                     "application/json"
                 ],
@@ -349,7 +330,7 @@ var doc = `{
                 "summary": "链上信息检验",
                 "parameters": [
                     {
-                        "description": "body",
+                        "description": "输入交易哈希，返回交易内容（包含文件内容哈希值）",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -374,46 +355,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/user/auth": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "用户管理"
-                ],
-                "summary": "用户注销",
-                "parameters": [
-                    {
-                        "description": "body",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.RevokeSwag"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/user/currentuser": {
+        "/api/v1/user/current": {
             "get": {
                 "security": [
                     {
@@ -446,7 +388,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/user/header": {
+        "/api/v1/user/getHeader": {
             "get": {
                 "security": [
                     {
@@ -457,12 +399,51 @@ var doc = `{
                     "application/json"
                 ],
                 "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "用户头像获取",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/login": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "用户管理"
                 ],
-                "summary": "用户更换头像",
+                "summary": "用户登录",
+                "parameters": [
+                    {
+                        "description": "用户名、密码",
+                        "name": "account",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.AuthSwag"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -512,50 +493,6 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/user/modify": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "用户管理"
-                ],
-                "summary": "修改登录用户信息",
-                "parameters": [
-                    {
-                        "description": "body",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.CurrentUserSwag"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/user/operType": {
             "get": {
                 "security": [
@@ -572,7 +509,7 @@ var doc = `{
                 "tags": [
                     "用户管理"
                 ],
-                "summary": "用户头像获取",
+                "summary": "用户查询农事数据类型",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -605,11 +542,11 @@ var doc = `{
                 "tags": [
                     "用户管理"
                 ],
-                "summary": "登录用户修改密码",
+                "summary": "修改用户密码",
                 "parameters": [
                     {
-                        "description": "body",
-                        "name": "body",
+                        "description": "旧密码、新密码",
+                        "name": "account",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -652,8 +589,8 @@ var doc = `{
                 "summary": "用户记录上传",
                 "parameters": [
                     {
-                        "description": "body",
-                        "name": "body",
+                        "description": "农事记录上传",
+                        "name": "account",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -677,7 +614,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/user/refreshtoken": {
+        "/api/v1/user/refresh": {
             "get": {
                 "security": [
                     {
@@ -710,7 +647,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/user/reg": {
+        "/api/v1/user/register": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -724,8 +661,8 @@ var doc = `{
                 "summary": "注册用户",
                 "parameters": [
                     {
-                        "description": "body",
-                        "name": "body",
+                        "description": "用户名、身份证号、密码",
+                        "name": "account",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -748,6 +685,132 @@ var doc = `{
                     }
                 }
             }
+        },
+        "/api/v1/user/revoke": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "用户注销",
+                "parameters": [
+                    {
+                        "description": "注销",
+                        "name": "account",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.RevokeSwag"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/setHeader": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "upload file",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "用户更换头像",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "用户头像",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/update": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "修改登录用户信息",
+                "parameters": [
+                    {
+                        "description": "字段更新",
+                        "name": "account",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.CurrentUserSwag"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -756,11 +819,13 @@ var doc = `{
             "properties": {
                 "password": {
                     "description": "登录密码",
-                    "type": "string"
+                    "type": "string",
+                    "example": "1234"
                 },
                 "user_name": {
                     "description": "登录邮箱",
-                    "type": "string"
+                    "type": "string",
+                    "example": "teddy"
                 }
             }
         },
@@ -768,18 +833,22 @@ var doc = `{
             "type": "object",
             "properties": {
                 "address": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "广州市白云区xx路2号"
                 },
                 "email": {
                     "description": "用户名",
-                    "type": "string"
+                    "type": "string",
+                    "example": "123456@qq.com"
                 },
                 "header": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "default"
                 },
                 "phone": {
                     "description": "电话",
-                    "type": "string"
+                    "type": "string",
+                    "example": "18677337725"
                 }
             }
         },
@@ -787,13 +856,16 @@ var doc = `{
             "type": "object",
             "properties": {
                 "end_time": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "1594382165"
                 },
                 "oper_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "施肥"
                 },
                 "start_time": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "1594382265"
                 }
             }
         },
@@ -801,13 +873,16 @@ var doc = `{
             "type": "object",
             "properties": {
                 "end_time": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "1595382265"
                 },
                 "point": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "point001"
                 },
                 "star_time": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "1594382265"
                 }
             }
         },
@@ -816,11 +891,13 @@ var doc = `{
             "properties": {
                 "new_password": {
                     "description": "新密码",
-                    "type": "string"
+                    "type": "string",
+                    "example": "123456"
                 },
                 "old_password": {
                     "description": "旧密码",
-                    "type": "string"
+                    "type": "string",
+                    "example": "1234"
                 }
             }
         },
@@ -828,27 +905,16 @@ var doc = `{
             "type": "object",
             "properties": {
                 "end_time": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "1595382265"
                 },
                 "point": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "point001"
                 },
                 "star_time": {
-                    "type": "string"
-                }
-            }
-        },
-        "schema.PictureSwag": {
-            "type": "object",
-            "properties": {
-                "date": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "point": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "1594382265"
                 }
             }
         },
@@ -873,15 +939,18 @@ var doc = `{
             "properties": {
                 "identity": {
                     "description": "identity",
-                    "type": "string"
+                    "type": "string",
+                    "example": "4522261111111111"
                 },
                 "password": {
                     "description": "密码",
-                    "type": "string"
+                    "type": "string",
+                    "example": "1234"
                 },
                 "username": {
                     "description": "用户名",
-                    "type": "string"
+                    "type": "string",
+                    "example": "teddy"
                 }
             }
         },
@@ -889,10 +958,12 @@ var doc = `{
             "type": "object",
             "properties": {
                 "identity": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "4522261111111111"
                 },
                 "user_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "teddy"
                 }
             }
         },
@@ -900,13 +971,16 @@ var doc = `{
             "type": "object",
             "properties": {
                 "end_time": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "1595382265"
                 },
                 "point": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "point001"
                 },
                 "star_time": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "1594382265"
                 }
             }
         },
@@ -914,13 +988,16 @@ var doc = `{
             "type": "object",
             "properties": {
                 "point": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "point001"
                 },
                 "raw": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "{\"point\":\"point001\",\"type\":\"temperature\",\"point\":\"26.2\",\"unit\":\"C\"}"
                 },
                 "type": {
-                    "type": "integer"
+                    "type": "string",
+                    "example": "p"
                 }
             }
         },
@@ -928,7 +1005,8 @@ var doc = `{
             "type": "object",
             "properties": {
                 "hash": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "45d44ca55d"
                 }
             }
         }
@@ -954,11 +1032,11 @@ type swaggerInfo struct {
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
 	Version:     "1.0",
-	Host:        "localhost:8000",
+	Host:        "202.193.60.112:8000",
 	BasePath:    "/",
 	Schemes:     []string{},
 	Title:       "fabirc bcs API",
-	Description: "Charge",
+	Description: "trace",
 }
 
 type s struct{}

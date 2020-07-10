@@ -19,7 +19,7 @@ func GenerateToken(user models.User) (string, error) {
 	expireTime := nowTime.Add(3 * time.Hour)
 	claims := Claims{
 		jwt.StandardClaims{
-			Audience:  user.Username,         // 受众
+			Audience:  user.UserName,         // 受众
 			ExpiresAt: expireTime.Unix(),     // 失效时间
 			Id:        strconv.Itoa(user.ID), // 编号
 			IssuedAt:  time.Now().Unix(),     // 签发时间

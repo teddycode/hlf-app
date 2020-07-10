@@ -17,16 +17,15 @@ import (
 
 // @title fabirc bcs API
 // @version 1.0
-// @description  Charge
+// @description  trace
 
-// @host localhost:8000
+// @host 202.193.60.112:8000
 // @BasePath /
 
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name Authorization
 func main() {
-
 	f, _ := os.Create("gin.log")
 	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
 
