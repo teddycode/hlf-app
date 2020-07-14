@@ -23,7 +23,6 @@ const (
 // @Accept json
 // @Produce  json
 // @Param   body  body   schema.SensorSwag   true "body"
-// @Security ApiKeyAuth
 // @Success 200 {string} gin.Context.JSON
 // @Failure 401 {string} gin.Context.JSON
 // @Router /api/v1/trace/sensor  [POST]
@@ -48,7 +47,6 @@ func Sensors(c *gin.Context) {
 // @Accept json
 // @Produce  json
 // @Param   body  body   schema.PicSwag   true "body"
-// @Security ApiKeyAuth
 // @Success 200 {string} gin.Context.JSON
 // @Failure 401 {string} gin.Context.JSON
 // @Router /api/v1/trace/picture  [POST]
@@ -72,8 +70,7 @@ func Pictures(c *gin.Context) {
 // @Tags 溯源查询
 // @Accept json
 // @Produce  json
-// @Param   body  body   schema.FarmSwag   true "body"
-// @Security ApiKeyAuth
+// @Param  body  body   schema.FarmSwag   true "body"
 // @Success 200 {string} gin.Context.JSON
 // @Failure 401 {string} gin.Context.JSON
 // @Router /api/v1/trace/farmData  [POST]
@@ -90,7 +87,7 @@ func Farms(c *gin.Context) {
 		appG.Response(http.StatusOK, e.ERROR_CC_QUERY_FAILED, "Chaincode query failed.")
 		return
 	}
-	appG.Response(http.StatusOK, e.ERROR_ADD_FAIL, res)
+	appG.Response(http.StatusOK, e.SUCCESS, res)
 }
 
 // @Summary 图片下载
@@ -132,7 +129,6 @@ func Farms(c *gin.Context) {
 // @Accept json
 // @Produce  json
 // @Param   body  body   schema.VerifySwag   true "输入交易哈希，返回交易内容（包含文件内容哈希值）"
-// @Security ApiKeyAuth
 // @Success 200 {string} gin.Context.JSON
 // @Failure 401 {string} gin.Context.JSON
 // @Router /api/v1/trace/verify  [POST]
@@ -141,64 +137,86 @@ func Verifier(c *gin.Context) {
 	var reqInfo schema.VerifySwag
 	err := c.BindJSON(&reqInfo)
 	if err != nil {
-		appG.Response(http.StatusOK, e.INVALID_PARAMS, nil)
+		appG.Response(http.StatusOK, e.INVALID_PARAMS, "param bind failed.")
 		return
 	}
 	res, err := BCS.QueryTxByID(reqInfo.Hash, setting.Peers[0])
 	if err != nil {
-		appG.Response(http.StatusOK, e.ERROR_LEDGER_FAILED, nil)
+		appG.Response(http.StatusOK, e.ERROR_LEDGER_FAILED, "ledger query failed.")
 		return
 	}
-	appG.Response(http.StatusOK, e.ERROR_ADD_FAIL, res)
+	appG.Response(http.StatusOK, e.SUCCESS, res)
 }
 
-// @Summary 数据上链接口
+// @Summary 图片信息上链接口
 // @Tags 溯源查询
 // @Accept json
 // @Produce  json
-// @Param   body  body   schema.UploadSwag   true "body"
+// @Param   body  body   schema.BCPic   true "返回交易哈希"
 // @Security ApiKeyAuth
 // @Success 200 {string} gin.Context.JSON
 // @Failure 400 {string} gin.Context.JSON
-// @Router  /api/v1/trace/upload  [POST]
-func Uploader(c *gin.Context) {
+// @Router  /api/v1/trace/upload/pic  [POST]
+func UploaderPic(c *gin.Context) {
 	appG := app.Gin{C: c}
-	var reqInfo schema.UploadSwag
-	err := c.BindJSON(&reqInfo)
+	var picInfo schema.BCPic
+	err := c.BindJSON(&picInfo)
 	if err != nil {
 		appG.Response(http.StatusOK, e.INVALID_PARAMS, "Bind json error.")
 		return
 	}
-	// check data format
-	if reqInfo.Type == "s" { //  sensor data
-		var sensor schema.BCSensor
-		err := json.Unmarshal([]byte(reqInfo.Raw), &sensor)
-		if err != nil {
-			appG.Response(http.StatusOK, e.INVALID_PARAMS, "Unmarshal json error.")
-			return
-		}
-	} else if reqInfo.Type == "p" { // pics data
-		var pic schema.BCPic
-		err := json.Unmarshal([]byte(reqInfo.Raw), &pic)
-		if err != nil {
-			appG.Response(http.StatusOK, e.INVALID_PARAMS, "Unmarshal json error.")
-			return
-		}
-	} else {
-		appG.Response(http.StatusOK, e.INVALID_PARAMS, "Data type not found.")
-		return
-	}
+	raw, _ := json.Marshal(&picInfo)
+	//	raw, _ := ioutil.ReadAll(c.Request.Body)
 	txID, err := BCS.InvokeCC("traceable", "add",
-		[][]byte{[]byte(reqInfo.Type), []byte(reqInfo.Point), []byte(reqInfo.Raw)}, setting.Peers)
+		[][]byte{[]byte(picInfo.Type), []byte(picInfo.Point), raw}, setting.Peers)
 	if err != nil {
 		appG.Response(http.StatusOK, e.ERROR_CC_INVOKE_FAILED, "Chaincode traceable invoke failed.")
 		return
 	}
-	id, _ := models.NewTx(&models.Transaction{
-		Timestamp: int(time.Now().Unix()),
-		Type:      reqInfo.Type,
+	//local, _ := time.LoadLocation("Local")
+	//now, _ := time.ParseInLocation("2006-01-02 15:04:05", "2017-06-20 18:16:15", local)
+	models.NewTx(&models.Transaction{
+		Timestamp: time.Now(),
+		Type:      "p",
 		Hash:      string(txID),
-		Point:     reqInfo.Point,
+		Point:     picInfo.Point,
 	})
-	appG.Response(http.StatusOK, e.SUCCESS, id)
+	appG.Response(http.StatusOK, e.SUCCESS, txID)
+}
+
+// @Summary 传感器数据上链接口
+// @Tags 溯源查询
+// @Accept json
+// @Produce  json
+// @Param   body  body  schema.BCSensor  true "返回交易哈希"
+// @Security ApiKeyAuth
+// @Success 200 {string} gin.Context.JSON
+// @Failure 400 {string} gin.Context.JSON
+// @Router  /api/v1/trace/upload/sensor  [POST]
+func UploaderSen(c *gin.Context) {
+	appG := app.Gin{C: c}
+	var sensor schema.BCSensor
+	err := c.BindJSON(&sensor)
+	if err != nil {
+		appG.Response(http.StatusOK, e.INVALID_PARAMS, "Bind json error.")
+		return
+	}
+	raw, _ := json.Marshal(&sensor)
+	//raw, _ := ioutil.ReadAll(c.Request.Body)
+
+	txID, err := BCS.InvokeCC("traceable", "add",
+		[][]byte{[]byte(sensor.Type), []byte(sensor.Point), raw}, setting.Peers)
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_CC_INVOKE_FAILED, "Chaincode traceable invoke failed.")
+		return
+	}
+	//local, _ := time.LoadLocation("Local")
+	//now, _ := time.ParseInLocation("2006-01-02 15:04:05", "2017-06-20 18:16:15", local)
+	models.NewTx(&models.Transaction{
+		Timestamp: time.Now(),
+		Type:      "s",
+		Hash:      string(txID),
+		Point:     sensor.Point,
+	})
+	appG.Response(http.StatusOK, e.SUCCESS, txID)
 }

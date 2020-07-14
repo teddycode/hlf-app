@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	v1 "github.com/fabric-app/controller/api/v1"
 	"github.com/gin-gonic/gin"
 	"io"
 	"log"
@@ -28,6 +29,7 @@ import (
 func main() {
 	f, _ := os.Create("gin.log")
 	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
+	defer v1.BCS.Close()
 
 	router := routers.InitRouter()
 

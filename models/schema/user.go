@@ -38,14 +38,16 @@ type CurrentUserSwag struct {
 	Email   string `json:"email" example:"123456@qq.com"` //用户名
 	Phone   string `json:"phone" example:"18677337725"`   //电话
 	Address string `json:"address" example:"广州市白云区xx路2号"`
-	Header  string `json:"header" example:"default"`
+	//Header  string `json:"header" example:"default"`
 }
 
-// 数据记录上传
+// 农事记录
 type FarmRecordSwag struct {
 	OperName  string `json:"oper_name"  example:"施肥"`
 	StartTime string `json:"start_time" example:"1594382265"`
 	EndTime   string `json:"end_time"  example:"1594382165"`
+	OperType  string `json:"oper_type" example:"施肥"`
+	Info      string `json:"info" example:"撒了点肥料"`
 }
 
 type RevokeSwag struct {

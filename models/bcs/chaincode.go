@@ -1,8 +1,6 @@
 package bcs
 
 import (
-	"github.com/hyperledger/fabric-protos-go/common"
-	"github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/common/cauthdsl"
 	"log"
 	"net/http"
 	"strings"
@@ -25,7 +23,7 @@ func (c *Client) InstallCC(cc, path, ver, peer string) error {
 	}
 
 	// new request of installing chaincode
-	req := resmgmt.InstallCCRequest{		Name:    cc,
+	req := resmgmt.InstallCCRequest{Name: cc,
 		Path:    path,
 		Version: ver,
 		Package: ccPkg,
@@ -60,11 +58,11 @@ func (c *Client) InstallCC(cc, path, ver, peer string) error {
 // args := packArgs([]string{"init", "a", "100", "b", "200"})
 func (c *Client) InstantiateCC(cc, path string, args []string, ver, peer string) (fab.TransactionID, error) {
 	// endorser policy
-	org1OrOrg2 := "OR('Org1MSP.member','Org2MSP.member')"
-	ccPolicy, err := c.genPolicy(org1OrOrg2)
-	if err != nil {
-		return "", errors.WithMessage(err, "gen policy from string error")
-	}
+	//org1OrOrg2 := "OR('Org1MSP.member','Org2MSP.member')"
+	//	ccPolicy, err := c.genPolicy(org1OrOrg2)
+	//	if err != nil {
+	//		return "", errors.WithMessage(err, "gen policy from string error")
+	//	}
 
 	// new request
 	// Attention: args should include `init` for Request not
@@ -74,12 +72,12 @@ func (c *Client) InstantiateCC(cc, path string, args []string, ver, peer string)
 		Path:    path,
 		Version: ver,
 		Args:    packArgs(args),
-		Policy:  ccPolicy,
+		Policy:  nil,
 	}
 
 	// send request and handle response
 	reqPeers := resmgmt.WithTargetEndpoints(peer)
-	resp, err := c.rc.InstantiateCC(ChannelID, req, reqPeers)
+	resp, err := c.rc.InstantiateCC(c.Channel, req, reqPeers)
 	if err != nil {
 		if strings.Contains(err.Error(), "already exists") {
 			return "", nil
@@ -91,13 +89,13 @@ func (c *Client) InstantiateCC(cc, path string, args []string, ver, peer string)
 	return resp.TransactionID, nil
 }
 
-func (c *Client) genPolicy(p string) (*common.SignaturePolicyEnvelope, error) {
-	// TODO bug, this any leads to endorser invalid
-	if p == "ANY" {
-		return cauthdsl.SignedByAnyMember([]string{c.OrgName}), nil
-	}
-	return cauthdsl.FromString(p)
-}
+//func (c *Client) genPolicy(p string) (*common.SignaturePolicyEnvelope, error) {
+//	// TODO bug, this any leads to endorser invalid
+//	if p == "ANY" {
+//		return cauthdsl.SignedByAnyMember([]string{c.OrgName}), nil
+//	}
+//	return cauthdsl.FromString(p)
+//}
 
 func (c *Client) InvokeCC(cc, fun string, args [][]byte, peers []string) (fab.TransactionID, error) {
 	// new channel request for invoke
@@ -109,10 +107,10 @@ func (c *Client) InvokeCC(cc, fun string, args [][]byte, peers []string) (fab.Tr
 	// send request and handle response, peers is needed
 	reqPeers := channel.WithTargetEndpoints(peers...)
 	resp, err := c.cc.Execute(req, reqPeers)
-	log.Printf("Invoke chaincode response:\n id: %v\nvalidate: %v\nchaincode status: %v\n\n",
-		resp.TransactionID,
-		resp.TxValidationCode,
-		resp.ChaincodeStatus)
+	//log.Printf("Invoke chaincode response:\n id: %v\nvalidate: %v\nchaincode status: %v\n\n",
+	//	resp.TransactionID,
+	//	resp.TxValidationCode,
+	//	resp.ChaincodeStatus)
 	if err != nil {
 		return "", errors.WithMessage(err, "invoke chaincode error")
 	}
@@ -134,20 +132,20 @@ func (c *Client) QueryCC(cc, fun string, keys []string, peer string) ([]byte, er
 		return nil, errors.WithMessage(err, "query chaincode error")
 	}
 
-	log.Printf("Query chaincode tx response:\ntx: %s\nresult: %v\n\n",
-		resp.TransactionID,
-		string(resp.Payload))
+	//log.Printf("Query chaincode tx response:\ntx: %s\nresult: %v\n\n",
+	//	resp.TransactionID,
+	//	string(resp.Payload))
 	return resp.Payload, nil
 }
 
 //	args := packArgs([]string{"init", "a", "1000", "b", "2000"})
 func (c *Client) UpgradeCC(cc, path, ver string, args []string, peer string) error {
 	// endorser policy
-	org1AndOrg2 := "AND('Org1MSP.member','Org2MSP.member')"
-	ccPolicy, err := c.genPolicy(org1AndOrg2)
-	if err != nil {
-		return errors.WithMessage(err, "gen policy from string error")
-	}
+	//org1AndOrg2 := "AND('Org1MSP.member','Org2MSP.member')"
+	//ccPolicy, err := c.genPolicy(org1AndOrg2)
+	//if err != nil {
+	//	return errors.WithMessage(err, "gen policy from string error")
+	//}
 
 	// new request
 	// Attention: args should include `init` for Request not
@@ -158,12 +156,12 @@ func (c *Client) UpgradeCC(cc, path, ver string, args []string, peer string) err
 		Path:    path,
 		Version: ver,
 		Args:    packArgs(args),
-		Policy:  ccPolicy,
+		Policy:  nil,
 	}
 
 	// send request and handle response
 	reqPeers := resmgmt.WithTargetEndpoints(peer)
-	resp, err := c.rc.UpgradeCC(ChannelID, req, reqPeers)
+	resp, err := c.rc.UpgradeCC(c.Channel, req, reqPeers)
 	if err != nil {
 		return errors.WithMessage(err, "instantiate chaincode error")
 	}

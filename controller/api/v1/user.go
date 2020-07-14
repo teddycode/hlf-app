@@ -12,6 +12,7 @@ import (
 	"github.com/fabric-app/pkg/util/rand"
 	"github.com/jinzhu/gorm"
 	"net/http"
+	"os"
 	"path"
 	"strconv"
 	"strings"
@@ -28,10 +29,14 @@ const (
 	ROLE_ADMIN        = 0
 	ROLE_USER         = 1
 	ROLE_REVOKED      = 2
-	HEADER_IMAGE_PATH = "./test/header/images/"
+	HEADER_IMAGE_PATH = "./test/header"
 )
 
-var BCS = bcs.New(setting.BcConf, "org1", "Admin", "User1")
+var BCS *bcs.Client
+
+func init() {
+	BCS = bcs.New(setting.BcConf, "org1", "Admin", "Admin", "mychannel")
+}
 
 type auth struct {
 	Username string `json:"user_name"`
@@ -86,7 +91,7 @@ func Reg(c *gin.Context) {
 		appG.Response(http.StatusOK, e.ERROR_CA_REG_FAILED, str)
 		return
 	}
-	// register identity in blockchain
+	// store user identity information in blockchain
 	txID, err := BCS.InvokeCC("user", "add", [][]byte{[]byte(reqInfo.Username), []byte(strconv.Itoa(ROLE_USER)), []byte(hash.EncodeMD5(reqInfo.Identity))}, setting.Peers)
 	if err != nil {
 		str, _ := BCS.RevokeUser(reqInfo.Username, "org1", reqInfo.Password, "user")
@@ -128,7 +133,7 @@ func Reg(c *gin.Context) {
 func Auth(c *gin.Context) {
 	appG := app.Gin{C: c}
 	var reqInfo auth
-	var data string
+	var isFrist string
 	err := c.BindJSON(&reqInfo)
 	if err != nil {
 		appG.Response(http.StatusOK, e.INVALID_PARAMS, nil)
@@ -143,7 +148,9 @@ func Auth(c *gin.Context) {
 
 	user, err := models.FindUserByName(reqInfo.Username)
 	if err == nil || len(user.Phone) == 0 {
-		data = "First Login"
+		isFrist = "1"
+	} else {
+		isFrist = "0"
 	}
 
 	token, err := util.GenerateToken(user)
@@ -152,8 +159,8 @@ func Auth(c *gin.Context) {
 		return
 	}
 	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{
-		"token": token,
-		"msg":   data,
+		"token":   token,
+		"isFirst": isFrist,
 	})
 }
 
@@ -387,7 +394,7 @@ func ModifyUser(c *gin.Context) {
 			user.Email = reqInfo.Email
 			user.Phone = reqInfo.Phone
 			user.Address = reqInfo.Address
-			user.Header = reqInfo.Header
+			//	user.Header = reqInfo.Header
 			_, err := models.UpdateUserInfo(&user)
 			if err != nil {
 				code = e.ERROR_EXIST
@@ -500,8 +507,10 @@ func Record(c *gin.Context) {
 		})
 		return
 	}
+	//local, _ := time.LoadLocation("Local")
+	//now, _ := time.ParseInLocation("2006-01-02 15:04:05", time.Now().String(), local)
 	transaction := models.Transaction{
-		Timestamp: int(time.Now().Unix()),
+		Timestamp: time.Now(),
 		Type:      "f",
 		Hash:      string(txID),
 		Point:     userName,
@@ -564,7 +573,7 @@ func getUserNameFromToken(c *gin.Context) (string, int) {
 // @Security ApiKeyAuth
 // @Success 200 {string} gin.Context.JSON
 // @Failure 400 {string} gin.Context.JSON
-// @Router  /api/v1/user/setHeader   [GET]
+// @Router  /api/v1/user/setHeader   [POST]
 func SetHeader(c *gin.Context) {
 	appG := app.Gin{C: c}
 	var userName string
@@ -583,8 +592,11 @@ func SetHeader(c *gin.Context) {
 		appG.Response(http.StatusOK, code, "Get user name failed.")
 		return
 	}
-	path1 := path.Join(models.HEADER_IMAGE_PATH, userName+"_"+f.Filename)
-	err = c.SaveUploadedFile(f, path1)
+	hp := path.Join(HEADER_IMAGE_PATH, userName)
+	if pathExists(hp) == false {
+		os.MkdirAll(hp, 0666)
+	}
+	err = c.SaveUploadedFile(f, path.Join(hp, f.Filename))
 	if err != nil {
 		appG.Response(http.StatusOK, e.ERROR_FILE_SAVE_FAILED, "Save file failed")
 		return
@@ -597,10 +609,21 @@ func SetHeader(c *gin.Context) {
 	appG.Response(http.StatusOK, e.SUCCESS, "OK")
 }
 
+func pathExists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return false
+}
+
 // @Summary 用户头像获取
 // @Tags 用户管理
 // @Accept json
-// @Produce application/octet-stream
+// @Produce json
 // @Security ApiKeyAuth
 // @Success 200 {string} gin.Context.JSON
 // @Failure 400 {string} gin.Context.JSON
@@ -612,22 +635,33 @@ func GetHeader(c *gin.Context) {
 		appG.Response(http.StatusOK, code, "Token parse error.")
 		return
 	}
-
 	fn, err := models.GetUserHeader(userName)
 	if err != nil {
 		appG.Response(http.StatusOK, e.ERROR_NOT_EXIST, "Empty")
 		return
 	}
-	//buf := bytes.Buffer{}
-	//size, err := buf.ReadFrom(file)
-	//if err != nil {
-	//	appG.Response(http.StatusOK, e.ERROR_FILE_GET_FAILED, "File buffer create failed.")
-	//	return
-	//}
-	//logging.Debug("Header images load success,size:", size)
+	appG.Response(http.StatusOK, e.SUCCESS, path.Join(userName, fn))
+}
 
-	appG.C.Writer.Header().Add("Content-Type", "application/octet-stream")
-	appG.C.Writer.Header().Add("Content-Disposition", "attachment;filename="+fn+".jpg")
-	//	appG.Response(http.StatusOK, e.SUCCESS, buf.Bytes())
-	appG.C.File(path.Join(models.HEADER_IMAGE_PATH, userName+"_"+fn))
+// @Summary 用户记录数查询
+// @Tags 用户管理
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {string} gin.Context.JSON
+// @Failure 400 {string} gin.Context.JSON
+// @Router  /api/v1/user/getRecords  [GET]
+func GetRecords(c *gin.Context) {
+	appG := app.Gin{C: c}
+	userName, code := getUserNameFromToken(c)
+	if code != e.SUCCESS {
+		appG.Response(http.StatusOK, code, "Token parse error.")
+		return
+	}
+	rs, err := models.CountUserFarmNum(userName)
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_NOT_EXIST, "Empty")
+		return
+	}
+	appG.Response(http.StatusOK, e.SUCCESS, rs)
 }

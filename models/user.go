@@ -84,7 +84,6 @@ func UpdateUserInfo(newUser *User) (int, error) {
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return 0, err
 	}
-	oldUser.UserName = newUser.UserName
 	oldUser.Email = newUser.Email
 	oldUser.Address = newUser.Address
 	oldUser.Phone = newUser.Phone
@@ -119,7 +118,7 @@ func UpdateUserheader(name, header string) (int, error) {
 	var user User
 	db.Where("user_name = ?", name).First(&user)
 	user.Header = header
-	err := db.Save(user).Error
+	err := db.Save(&user).Error
 	if err != nil {
 		return 0, err
 	}

@@ -11,6 +11,37 @@ definitions:
         example: teddy
         type: string
     type: object
+  schema.BCPic:
+    properties:
+      name:
+        example: b9c52e66c1ebfc826e324a394a106f9dc9550fed4390808b2d8932ff91c92b5a
+        type: string
+      point:
+        example: point001
+        type: string
+      size:
+        example: "1024"
+        type: string
+      type:
+        description: '0: sensor, 1:pic,'
+        example: sensor
+        type: string
+    type: object
+  schema.BCSensor:
+    properties:
+      point:
+        example: point001
+        type: string
+      type:
+        example: temperature
+        type: string
+      unit:
+        example: ℃
+        type: string
+      value:
+        example: "26.3"
+        type: string
+    type: object
   schema.CurrentUserSwag:
     properties:
       address:
@@ -19,9 +50,6 @@ definitions:
       email:
         description: 用户名
         example: 123456@qq.com
-        type: string
-      header:
-        example: default
         type: string
       phone:
         description: 电话
@@ -33,7 +61,13 @@ definitions:
       end_time:
         example: "1594382165"
         type: string
+      info:
+        example: 撒了点肥料
+        type: string
       oper_name:
+        example: 施肥
+        type: string
+      oper_type:
         example: 施肥
         type: string
       start_time:
@@ -78,6 +112,7 @@ definitions:
   schema.QueryTransNumSwag:
     properties:
       type:
+        example: 1
         type: integer
     required:
     - type
@@ -122,22 +157,10 @@ definitions:
         example: "1594382265"
         type: string
     type: object
-  schema.UploadSwag:
-    properties:
-      point:
-        example: point001
-        type: string
-      raw:
-        example: '{"point":"point001","type":"temperature","point":"26.2","unit":"C"}'
-        type: string
-      type:
-        example: p
-        type: string
-    type: object
   schema.VerifySwag:
     properties:
       hash:
-        example: 45d44ca55d
+        example: b9c52e66c1ebfc826e324a394a106f9dc9550fed4390808b2d8932ff91c92b5a
         type: string
     type: object
 host: 202.193.60.112:8000
@@ -163,9 +186,25 @@ paths:
           description: Bad Request
           schema:
             type: string
-      security:
-      - ApiKeyAuth: []
       summary: 获取区块链状态信息
+      tags:
+      - 区块链监控
+  /api/v1/bcs/peers:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: 查询所有节点信息
       tags:
       - 区块链监控
   /api/v1/bcs/points:
@@ -183,8 +222,6 @@ paths:
           description: Bad Request
           schema:
             type: string
-      security:
-      - ApiKeyAuth: []
       summary: 查询所有采集点及其信息数量
       tags:
       - 区块链监控
@@ -193,7 +230,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: body
+      - description: 1:按天 2:按周 3:按月 4:按年
         in: body
         name: body
         required: true
@@ -210,8 +247,6 @@ paths:
           description: Bad Request
           schema:
             type: string
-      security:
-      - ApiKeyAuth: []
       summary: 条件查询交易数
       tags:
       - 区块链监控
@@ -237,8 +272,6 @@ paths:
           description: Unauthorized
           schema:
             type: string
-      security:
-      - ApiKeyAuth: []
       summary: 农事数据溯源
       tags:
       - 溯源查询
@@ -264,8 +297,6 @@ paths:
           description: Unauthorized
           schema:
             type: string
-      security:
-      - ApiKeyAuth: []
       summary: 图片信息溯源
       tags:
       - 溯源查询
@@ -291,22 +322,20 @@ paths:
           description: Unauthorized
           schema:
             type: string
-      security:
-      - ApiKeyAuth: []
       summary: 传感器数据溯源
       tags:
       - 溯源查询
-  /api/v1/trace/upload:
+  /api/v1/trace/upload/pic:
     post:
       consumes:
       - application/json
       parameters:
-      - description: body
+      - description: 返回交易哈希
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/schema.UploadSwag'
+          $ref: '#/definitions/schema.BCPic'
       produces:
       - application/json
       responses:
@@ -320,7 +349,34 @@ paths:
             type: string
       security:
       - ApiKeyAuth: []
-      summary: 数据上链接口
+      summary: 图片信息上链接口
+      tags:
+      - 溯源查询
+  /api/v1/trace/upload/sensor:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 返回交易哈希
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.BCSensor'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 传感器数据上链接口
       tags:
       - 溯源查询
   /api/v1/trace/verify:
@@ -345,8 +401,6 @@ paths:
           description: Unauthorized
           schema:
             type: string
-      security:
-      - ApiKeyAuth: []
       summary: 链上信息检验
       tags:
       - 溯源查询
@@ -375,7 +429,7 @@ paths:
       consumes:
       - application/json
       produces:
-      - application/octet-stream
+      - application/json
       responses:
         "200":
           description: OK
@@ -388,6 +442,26 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: 用户头像获取
+      tags:
+      - 用户管理
+  /api/v1/user/getRecords:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 用户记录数查询
       tags:
       - 用户管理
   /api/v1/user/login:
@@ -580,7 +654,7 @@ paths:
       tags:
       - 用户管理
   /api/v1/user/setHeader:
-    get:
+    post:
       consumes:
       - multipart/form-data
       description: upload file

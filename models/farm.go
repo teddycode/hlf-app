@@ -37,3 +37,13 @@ func DelFarmType(t *FarmType) (int, error) {
 	}
 	return t.ID, err
 }
+
+// query user farm type
+func CountUserFarmNum(user string) (int64, error) {
+	var cnt int64
+	err := db.Model(&Transaction{}).Where("type = ? and point = ?","f", user).Count(&cnt).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return 0, err
+	}
+	return cnt, err
+}

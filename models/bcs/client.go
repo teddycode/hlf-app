@@ -13,7 +13,6 @@ import (
 )
 
 var (
-	ChannelID = "mychannel"         // channel name
 	CCGoPath  = os.Getenv("GOPATH") // GOPATH used for chaincode
 )
 
@@ -23,6 +22,7 @@ type Client struct {
 	OrgName    string
 	OrgAdmin   string
 	OrgUser    string
+	Channel    string
 
 	// sdk clients
 	SDK *fabsdk.FabricSDK
@@ -35,13 +35,14 @@ type Client struct {
 	dc *dsc.Client // discovery client
 }
 
-func New(cfg, org, admin, user string) *Client {
+func New(cfg, org, admin, user, chans string) *Client {
 	c := &Client{
 		ConfigPath: cfg,
 		OrgName:    org,
 		OrgAdmin:   admin,
 		OrgUser:    user,
 	}
+	c.Channel = chans
 
 	// create sdk
 	sdk, err := fabsdk.New(config.FromFile(c.ConfigPath))
@@ -51,7 +52,7 @@ func New(cfg, org, admin, user string) *Client {
 	c.SDK = sdk
 	log.Println("Initialized fabric sdk")
 
-	c.rc, c.cc, c.lc = NewSDKClient(sdk, ChannelID, c.OrgName, c.OrgAdmin, c.OrgUser)
+	c.rc, c.cc, c.lc = NewSDKClient(sdk, chans, c.OrgName, c.OrgAdmin, c.OrgUser)
 
 	// CA
 	c.removeUserData()

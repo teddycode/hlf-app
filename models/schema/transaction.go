@@ -8,7 +8,7 @@ type TransactionSwag struct {
 }
 
 type QueryTransNumSwag struct {
-	Type int `json:"type" binding:"required"`
+	Type int `json:"type" binding:"required" example:"1"`
 }
 
 type QueryPointTxNumSwag struct {

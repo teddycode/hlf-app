@@ -27,11 +27,6 @@ var doc = `{
     "paths": {
         "/api/v1/bcs/info": {
             "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -58,13 +53,36 @@ var doc = `{
                 }
             }
         },
+        "/api/v1/bcs/peers": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "区块链监控"
+                ],
+                "summary": "查询所有节点信息",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/bcs/points": {
             "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -93,11 +111,6 @@ var doc = `{
         },
         "/api/v1/bcs/transactions": {
             "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -110,7 +123,7 @@ var doc = `{
                 "summary": "条件查询交易数",
                 "parameters": [
                     {
-                        "description": "body",
+                        "description": "1:按天 2:按周 3:按月 4:按年",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -137,11 +150,6 @@ var doc = `{
         },
         "/api/v1/trace/farmData": {
             "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -181,11 +189,6 @@ var doc = `{
         },
         "/api/v1/trace/picture": {
             "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -225,11 +228,6 @@ var doc = `{
         },
         "/api/v1/trace/sensor": {
             "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -267,7 +265,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/trace/upload": {
+        "/api/v1/trace/upload/pic": {
             "post": {
                 "security": [
                     {
@@ -283,15 +281,59 @@ var doc = `{
                 "tags": [
                     "溯源查询"
                 ],
-                "summary": "数据上链接口",
+                "summary": "图片信息上链接口",
                 "parameters": [
                     {
-                        "description": "body",
+                        "description": "返回交易哈希",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/schema.UploadSwag"
+                            "$ref": "#/definitions/schema.BCPic"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/trace/upload/sensor": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "溯源查询"
+                ],
+                "summary": "传感器数据上链接口",
+                "parameters": [
+                    {
+                        "description": "返回交易哈希",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.BCSensor"
                         }
                     }
                 ],
@@ -313,11 +355,6 @@ var doc = `{
         },
         "/api/v1/trace/verify": {
             "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -399,12 +436,45 @@ var doc = `{
                     "application/json"
                 ],
                 "produces": [
-                    "application/octet-stream"
+                    "application/json"
                 ],
                 "tags": [
                     "用户管理"
                 ],
                 "summary": "用户头像获取",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user/getRecords": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "用户记录数查询",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -726,7 +796,7 @@ var doc = `{
             }
         },
         "/api/v1/user/setHeader": {
-            "get": {
+            "post": {
                 "security": [
                     {
                         "ApiKeyAuth": []
@@ -829,6 +899,49 @@ var doc = `{
                 }
             }
         },
+        "schema.BCPic": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "b9c52e66c1ebfc826e324a394a106f9dc9550fed4390808b2d8932ff91c92b5a"
+                },
+                "point": {
+                    "type": "string",
+                    "example": "point001"
+                },
+                "size": {
+                    "type": "string",
+                    "example": "1024"
+                },
+                "type": {
+                    "description": "0: sensor, 1:pic,",
+                    "type": "string",
+                    "example": "sensor"
+                }
+            }
+        },
+        "schema.BCSensor": {
+            "type": "object",
+            "properties": {
+                "point": {
+                    "type": "string",
+                    "example": "point001"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "temperature"
+                },
+                "unit": {
+                    "type": "string",
+                    "example": "℃"
+                },
+                "value": {
+                    "type": "string",
+                    "example": "26.3"
+                }
+            }
+        },
         "schema.CurrentUserSwag": {
             "type": "object",
             "properties": {
@@ -840,10 +953,6 @@ var doc = `{
                     "description": "用户名",
                     "type": "string",
                     "example": "123456@qq.com"
-                },
-                "header": {
-                    "type": "string",
-                    "example": "default"
                 },
                 "phone": {
                     "description": "电话",
@@ -859,7 +968,15 @@ var doc = `{
                     "type": "string",
                     "example": "1594382165"
                 },
+                "info": {
+                    "type": "string",
+                    "example": "撒了点肥料"
+                },
                 "oper_name": {
+                    "type": "string",
+                    "example": "施肥"
+                },
+                "oper_type": {
                     "type": "string",
                     "example": "施肥"
                 },
@@ -925,7 +1042,8 @@ var doc = `{
             ],
             "properties": {
                 "type": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 }
             }
         },
@@ -984,29 +1102,12 @@ var doc = `{
                 }
             }
         },
-        "schema.UploadSwag": {
-            "type": "object",
-            "properties": {
-                "point": {
-                    "type": "string",
-                    "example": "point001"
-                },
-                "raw": {
-                    "type": "string",
-                    "example": "{\"point\":\"point001\",\"type\":\"temperature\",\"point\":\"26.2\",\"unit\":\"C\"}"
-                },
-                "type": {
-                    "type": "string",
-                    "example": "p"
-                }
-            }
-        },
         "schema.VerifySwag": {
             "type": "object",
             "properties": {
                 "hash": {
                     "type": "string",
-                    "example": "45d44ca55d"
+                    "example": "b9c52e66c1ebfc826e324a394a106f9dc9550fed4390808b2d8932ff91c92b5a"
                 }
             }
         }

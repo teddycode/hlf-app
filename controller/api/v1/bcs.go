@@ -15,7 +15,6 @@ import (
 // @Tags 区块链监控
 // @Accept json
 // @Produce  json
-// @Security ApiKeyAuth
 // @Success 200 {string} gin.Context.JSON
 // @Failure 400 {string} gin.Context.JSON
 // @Router  /api/v1/bcs/info   [GET]
@@ -38,7 +37,13 @@ func BcInfo(c *gin.Context) {
 	txs := int64(float32(msgs) * 1.32)
 
 	// get nodes numbers
-	node := "4"
+	var node string
+	peers, err := BCS.QueryPeers()
+	if err != nil {
+		node = "0"
+	}
+
+	node = strconv.Itoa(len(peers))
 
 	info := schema.Blockchain{
 		Height:   heiht,
@@ -53,8 +58,7 @@ func BcInfo(c *gin.Context) {
 // @Tags 区块链监控
 // @Accept json
 // @Produce  json
-// @Param   body  body   schema.QueryTransNumSwag   true "body"
-// @Security ApiKeyAuth
+// @Param   body  body   schema.QueryTransNumSwag   true "1:按天 2:按周 3:按月 4:按年"
 // @Success 200 {string} gin.Context.JSON
 // @Failure 400 {string} gin.Context.JSON
 // @Router  /api/v1/bcs/transactions  [POST]
@@ -65,15 +69,16 @@ func Transactions(c *gin.Context) {
 	err := c.BindJSON(&reqInfo)
 	if err != nil {
 		appG.Response(http.StatusOK, e.INVALID_PARAMS, nil)
+		return
 	}
 	switch reqInfo.Type {
-	case 0: // day
+	case 1: // day
 		nums, err = models.CountTxNumByDay()
-	case 1: // week
+	case 2: // week
 		nums, err = models.CountTxNumByWeek()
-	case 2: // moth
+	case 3: // moth
 		nums, err = models.CountTxNumByMoth()
-	case 3: // year
+	case 4: // year
 		nums, err = models.CountTxNumByYear()
 	}
 	if err != nil {
@@ -87,25 +92,42 @@ func Transactions(c *gin.Context) {
 // @Tags 区块链监控
 // @Accept json
 // @Produce  json
-// @Security ApiKeyAuth
 // @Success 200 {string} gin.Context.JSON
 // @Failure 400 {string} gin.Context.JSON
 // @Router  /api/v1/bcs/points   [GET]
 func Points(c *gin.Context) {
 	appG := app.Gin{C: c}
-	res := map[string]int64{}
+	//res := map[string]int64{}
 
 	trans, err := models.GetAllPoints()
 	if err != nil {
 		appG.Response(http.StatusOK, e.ERROR_DB_ERROR, "DB query all points failed.")
 		return
 	}
-	for _, v := range trans {
-		num, _ := models.CountTxNumByPoint(v.Point)
-		res[v.Point] = num
-	}
-	appG.Response(http.StatusOK, e.SUCCESS, res)
+	// 优化1
+	//for _, v := range trans {
+	//	num, _ := models.CountTxNumByPoint(v.Point)
+	//	res[v.Point] = num
+	//	//break
+	//}
+	appG.Response(http.StatusOK, e.SUCCESS, trans)
 	return
 }
 
-
+// @Summary 查询所有节点信息
+// @Tags 区块链监控
+// @Accept json
+// @Produce  json
+// @Success 200 {string} gin.Context.JSON
+// @Failure 400 {string} gin.Context.JSON
+// @Router  /api/v1/bcs/peers  [GET]
+func Peers(c *gin.Context) {
+	appG := app.Gin{C: c}
+	peers, err := BCS.QueryPeers()
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_DB_ERROR, "查询节点信息失败.")
+		return
+	}
+	appG.Response(http.StatusOK, e.SUCCESS, peers)
+	return
+}
