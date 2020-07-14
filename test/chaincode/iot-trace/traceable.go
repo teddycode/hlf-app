@@ -6,6 +6,7 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	sc "github.com/hyperledger/fabric/protos/peer"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -93,7 +94,8 @@ func (s *SmartContract) add(APIstub shim.ChaincodeStubInterface, args []string) 
 	unixNano := timeStampToUnixNanoStr(ts.Seconds, int64(ts.Nanos))
 	index := args[0] + "~" + args[1] + "~" + unixNano
 	//fmt.Printf("index:%s\n", index)
-	APIstub.PutState(index, []byte(args[2]))
+
+	APIstub.PutState(index, []byte(args[2]+"~"+APIstub.GetTxID()))
 	return shim.Success(nil)
 }
 
@@ -139,15 +141,18 @@ func (s *SmartContract) query(APIstub shim.ChaincodeStubInterface, args []string
 		if bArrayMemberAlreadyWritten == true {
 			buffer.WriteString(",")
 		}
-		buffer.WriteString("{\"K\":")
+		buffer.WriteString("{\"k\":")
 		buffer.WriteString("\"")
 		buffer.WriteString(queryResponse.Key)
 		buffer.WriteString("\"")
 
-		buffer.WriteString(", \"V\":")
+		strs := strings.Split(string(queryResponse.Value),"~")
+		buffer.WriteString(", \"v\":")
 		// Record is a JSON object, so we write as-is
-		buffer.WriteString(string(queryResponse.Value))
-		buffer.WriteString("}")
+		buffer.WriteString(strs[0])
+		buffer.WriteString(", \"t\":\"")
+		buffer.WriteString(strs[1])
+		buffer.WriteString("\"}")
 		bArrayMemberAlreadyWritten = true
 	}
 	buffer.WriteString("]")

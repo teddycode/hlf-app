@@ -1,7 +1,9 @@
 package models
 
 import (
+	"fmt"
 	"github.com/jinzhu/gorm"
+	"strconv"
 	"time"
 )
 
@@ -35,6 +37,10 @@ func (v PointCnter) TableName() string {
 	return "transactions"
 }
 
+func (v TxCnter) TableName() string {
+	return "transactions"
+}
+
 // new tx record
 func NewTx(tx *Transaction) (int, error) {
 	err := db.Create(tx).Error
@@ -45,73 +51,115 @@ func NewTx(tx *Transaction) (int, error) {
 }
 
 // count tx number by time period
-func countTxNumByTimePeriod(s, e int64) (int64, error) {
-	var count int64
-	err := db.Model(&Transaction{}).Where("timestamp >= ? and timestamp < ?", s, e).Count(&count).Error
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return 0, err
-	}
-	return count, err
-}
+//func countTxNumByTimePeriod(s, e int64) (int64, error) {
+//	var count int64
+//	err := db.Model(&Transaction{}).Where("timestamp >= ? and timestamp < ?", s, e).Count(&count).Error
+//	if err != nil && err != gorm.ErrRecordNotFound {
+//		return 0, err
+//	}
+//	return count, err
+//}
 
 // count tx number by day  with last 12h
-func CountTxNumByDay() ([]int64, error) {
-	var err, et error
-	var nt = time.Now().Unix() // 从当前时间开始
-	var cnts = make([]int64, 13)
-	for i := 12; i > 0; i-- {
-		cnts[i], et = countTxNumByTimePeriod(nt-HOUR_TIMESTAMP, nt)
-		if et != nil {
-			err = et
+func CountTxNumByDay() ([]TxCnter, error) {
+	var sql string
+	txCnts := []TxCnter{}
+	var t = time.Now() // 从当前时间开始
+	d, _ := time.ParseDuration("1h")
+	nt := t.Truncate(d).Add(d) // 截取hour
+	d, _ = time.ParseDuration("-1h")
+	for i := 0; i < 24; i++ {
+		lt := nt.Add(d)
+		sql += fmt.Sprintf("SELECT '%d' AS unit, COUNT(id) AS value FROM transactions WHERE TIMESTAMP <= '%s' and TIMESTAMP > '%s' ",
+			lt.Hour(), nt.Format("2006-01-02 15:04:05"), lt.Format("2006-01-02 15:04:05"))
+		if i != 23 {
+			sql += " UNION "
 		}
-		nt -= HOUR_TIMESTAMP
+		nt = lt
 	}
-	return cnts, err
+	//fmt.Println(sql)
+	err := db.Raw(sql).Find(&txCnts).Error
+	if err != nil {
+		return txCnts, err
+	}
+	return txCnts, err
 }
 
 // count tx number by week
-func CountTxNumByWeek() ([]int64, error) {
-	var err, et error
-	var nt = time.Now().Unix()
-	var cnts = make([]int64, 8)
-	for i := 7; i > 0; i-- {
-		cnts[i], et = countTxNumByTimePeriod(nt-DAY_TIMESTAMP, nt)
-		if et != nil {
-			err = et
+func CountTxNumByWeek() ([]TxCnter, error) {
+	var sql string
+	txCnts := []TxCnter{}
+	var t = time.Now() // 从当前时间开始
+	d, _ := time.ParseDuration("24h")
+	nt := t.Truncate(d).Add(d) // 截取day
+	d, _ = time.ParseDuration("-24h")
+	for i := 0; i < 7; i++ {
+		lt := nt.Add(d)
+		sql += fmt.Sprintf("SELECT '%s' AS unit, COUNT(id) AS value FROM transactions WHERE TIMESTAMP <= '%s' and TIMESTAMP > '%s' ",
+			lt.Weekday().String(), nt.Format("2006-01-02 15:04:05"), lt.Format("2006-01-02 15:04:05"))
+		if i != 6 {
+			sql += " UNION "
 		}
-		nt -= DAY_TIMESTAMP
+		nt = lt
 	}
-	return cnts, err
+	fmt.Println(sql)
+	err := db.Raw(sql).Find(&txCnts).Error
+	if err != nil {
+		return txCnts, err
+	}
+	return txCnts, err
 }
 
 // count tx number by moth
-func CountTxNumByMoth() ([]int64, error) {
-	var err, et error
-	var nt = time.Now().Unix()
-	var cnts = make([]int64, 31)
-	for i := 30; i > 0; i-- {
-		cnts[i], et = countTxNumByTimePeriod(nt-DAY_TIMESTAMP, nt)
-		if et != nil {
-			err = et
+func CountTxNumByMoth() ([]TxCnter, error) {
+	var sql string
+	txCnts := []TxCnter{}
+	var t = time.Now() // 从当前时间开始
+	d, _ := time.ParseDuration("24h")
+	nt := t.Truncate(d).Add(d) // 截取day
+	d, _ = time.ParseDuration("-24h")
+	for i := 0; i < 30; i++ {
+		lt := nt.Add(d)
+		sql += fmt.Sprintf("SELECT '%d' AS unit, COUNT(id) AS value FROM transactions WHERE TIMESTAMP <= '%s' and TIMESTAMP > '%s' ",
+			nt.Day(), nt.Format("2006-01-02 15:04:05"), lt.Format("2006-01-02 15:04:05"))
+		if i != 29 {
+			sql += " UNION "
 		}
-		nt -= DAY_TIMESTAMP
+		nt = lt
 	}
-	return cnts, err
+	fmt.Println(sql)
+	err := db.Raw(sql).Find(&txCnts).Error
+	if err != nil {
+		return txCnts, err
+	}
+	return txCnts, err
 }
 
 // count tx number by moth
-func CountTxNumByYear() ([]int64, error) {
-	var err, et error
-	var nt = time.Now().Unix()
-	var cnts = make([]int64, 13)
-	for i := 12; i > 0; i-- {
-		cnts[i], et = countTxNumByTimePeriod(nt-MOTH_TIMESTAMP, nt)
-		if et != nil {
-			err = et
+func CountTxNumByYear() ([]TxCnter, error) {
+	var sql string
+	txCnts := []TxCnter{}
+	var mStr = time.Now().Format("01") // 从当前月份开始
+	m, _ := strconv.ParseInt(mStr, 10, 64)
+	var yStr = time.Now().Format("2006") // 从当前年份开始
+	y, _ := strconv.ParseInt(yStr, 10, 64)
+	for i := 0; i < 12; i++ {
+		sql += fmt.Sprintf("select '%d' as unit, COUNT(id) as value from transactions where year(timestamp) = '%d' and month(timestamp) = '%d'", m, y, m)
+		if i != 11 {
+			sql += " UNION "
 		}
-		nt -= MOTH_TIMESTAMP
+		m--
+		if m < 0 {
+			m = 12
+			y--
+		}
 	}
-	return cnts, err
+	fmt.Println(sql)
+	err := db.Raw(sql).Find(&txCnts).Error
+	if err != nil {
+		return txCnts, err
+	}
+	return txCnts, err
 }
 
 // count tx number by point

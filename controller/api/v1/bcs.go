@@ -64,7 +64,7 @@ func BcInfo(c *gin.Context) {
 // @Router  /api/v1/bcs/transactions  [POST]
 func Transactions(c *gin.Context) {
 	appG := app.Gin{C: c}
-	var nums []int64
+	var txCnt []models.TxCnter
 	var reqInfo schema.QueryTransNumSwag
 	err := c.BindJSON(&reqInfo)
 	if err != nil {
@@ -73,19 +73,19 @@ func Transactions(c *gin.Context) {
 	}
 	switch reqInfo.Type {
 	case 1: // day
-		nums, err = models.CountTxNumByDay()
+		txCnt, err = models.CountTxNumByDay()
 	case 2: // week
-		nums, err = models.CountTxNumByWeek()
+		txCnt, err = models.CountTxNumByWeek()
 	case 3: // moth
-		nums, err = models.CountTxNumByMoth()
+		txCnt, err = models.CountTxNumByMoth()
 	case 4: // year
-		nums, err = models.CountTxNumByYear()
+		txCnt, err = models.CountTxNumByYear()
 	}
 	if err != nil {
 		logging.Error("DB count error:", err.Error())
-		nums = []int64{0}
+		txCnt = nil
 	}
-	appG.Response(http.StatusOK, e.SUCCESS, nums)
+	appG.Response(http.StatusOK, e.SUCCESS, txCnt)
 }
 
 // @Summary 查询所有采集点及其信息数量
