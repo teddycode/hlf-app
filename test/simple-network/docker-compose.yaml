@@ -28,6 +28,7 @@ services:
     command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.org1.lzawt.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/63db1a92c35491fc28dd419a6b7cb298c4f180731bfba7dfb195bf9884d8d29a_sk -b admin:adminpw -d'
     volumes:
       - ./crypto-config/peerOrganizations/org1.lzawt.com/ca/:/etc/hyperledger/fabric-ca-server-config
+      - ./fabric-ca-server/ca0/:/etc/hyperledger/fabric-ca-server
     container_name: ca_peerOrg1
     networks:
       - byfn
@@ -44,6 +45,7 @@ services:
       - "8054:7054"
     command: sh -c 'fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.org2.lzawt.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/19b6769455f70245b5396b7437f548802d03283ca0fdd63738fecc062ca24f20_sk -b admin:adminpw -d'
     volumes:
+      - ./fabric-ca-server/ca0/:/etc/hyperledger/fabric-ca-server
       - ./crypto-config/peerOrganizations/org2.lzawt.com/ca/:/etc/hyperledger/fabric-ca-server-config
     container_name: ca_peerOrg2
     networks:
