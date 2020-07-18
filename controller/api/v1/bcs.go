@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 // @Summary 获取区块链状态信息
@@ -96,8 +97,8 @@ func Transactions(c *gin.Context) {
 // @Failure 400 {string} gin.Context.JSON
 // @Router  /api/v1/bcs/points   [GET]
 func Points(c *gin.Context) {
+	st := time.Now()
 	appG := app.Gin{C: c}
-	//res := map[string]int64{}
 
 	trans, err := models.GetAllPoints()
 	if err != nil {
@@ -110,6 +111,7 @@ func Points(c *gin.Context) {
 	//	res[v.Point] = num
 	//	//break
 	//}
+	appG.C.Writer.Header().Set("t",time.Since(st).String())
 	appG.Response(http.StatusOK, e.SUCCESS, trans)
 	return
 }

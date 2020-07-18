@@ -14,32 +14,51 @@ definitions:
   schema.BCPic:
     properties:
       name:
+        description: 图片文件名（也是脸上哈希）
         example: b9c52e66c1ebfc826e324a394a106f9dc9550fed4390808b2d8932ff91c92b5a
         type: string
       point:
-        example: point001
+        description: 采集点
+        example: "19372180"
         type: string
       size:
-        example: "1024"
+        description: 图片大小
+        example: "102400"
         type: string
       type:
-        description: '0: sensor, 1:pic,'
+        description: '来源 0: sensor, 1:pic,'
         example: sensor
         type: string
     type: object
   schema.BCSensor:
     properties:
       point:
-        example: point001
+        description: 采集点
+        example: "19372180"
         type: string
       type:
+        description: 传感器参数类型
         example: temperature
         type: string
       unit:
+        description: 单位
         example: ℃
         type: string
       value:
+        description: 参数数值
         example: "26.3"
+        type: string
+    type: object
+  schema.CheckPic:
+    properties:
+      date:
+        example: "2020-07-13"
+        type: string
+      hash:
+        example: d8963f1db11e7ca690f159b7e8173205854d7914aba7b47ede48684175b8bc39
+        type: string
+      point:
+        example: 0018DE743E31
         type: string
     type: object
   schema.CurrentUserSwag:
@@ -77,10 +96,10 @@ definitions:
   schema.FarmSwag:
     properties:
       end_time:
-        example: "1595382265"
+        example: "9999999999"
         type: string
       point:
-        example: point001
+        example: teddy
         type: string
       star_time:
         example: "1594382265"
@@ -103,7 +122,7 @@ definitions:
         example: "1595382265"
         type: string
       point:
-        example: point001
+        example: 0018DE743E31
         type: string
       star_time:
         example: "1594382265"
@@ -151,7 +170,7 @@ definitions:
         example: "1595382265"
         type: string
       point:
-        example: point001
+        example: 0018DE743E31
         type: string
       star_time:
         example: "1594382265"
@@ -160,10 +179,11 @@ definitions:
   schema.VerifySwag:
     properties:
       hash:
+        description: 脸上哈希
         example: b9c52e66c1ebfc826e324a394a106f9dc9550fed4390808b2d8932ff91c92b5a
         type: string
     type: object
-host: 202.193.60.112:8000
+host: 202.193.60.108:8000
 info:
   contact: {}
   description: trace
@@ -250,6 +270,31 @@ paths:
       summary: 条件查询交易数
       tags:
       - 区块链监控
+  /api/v1/trace/check:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: test
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/schema.CheckPic'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: 图片哈希校验
+      tags:
+      - 溯源查询
   /api/v1/trace/farmData:
     post:
       consumes:

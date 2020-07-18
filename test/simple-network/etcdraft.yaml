@@ -29,6 +29,7 @@ services:
     command: sh -c 'fabric-ca-server start --cfg.identities.allowremove --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.org1.lzawt.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/63db1a92c35491fc28dd419a6b7cb298c4f180731bfba7dfb195bf9884d8d29a_sk -b admin:adminpw -d'
     volumes:
       - ./crypto-config/peerOrganizations/org1.lzawt.com/ca/:/etc/hyperledger/fabric-ca-server-config
+      #- ./fabric-ca-server/ca0/:/etc/hyperledger/fabric-ca-server
     container_name: ca.org1.lzawt.com
     networks:
       - byfn

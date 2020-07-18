@@ -102,7 +102,7 @@ func CountTxNumByWeek() ([]TxCnter, error) {
 		}
 		nt = lt
 	}
-	fmt.Println(sql)
+	//fmt.Println(sql)
 	err := db.Raw(sql).Find(&txCnts).Error
 	if err != nil {
 		return txCnts, err
@@ -127,7 +127,7 @@ func CountTxNumByMoth() ([]TxCnter, error) {
 		}
 		nt = lt
 	}
-	fmt.Println(sql)
+//	fmt.Println(sql)
 	err := db.Raw(sql).Find(&txCnts).Error
 	if err != nil {
 		return txCnts, err
@@ -154,7 +154,7 @@ func CountTxNumByYear() ([]TxCnter, error) {
 			y--
 		}
 	}
-	fmt.Println(sql)
+//	fmt.Println(sql)
 	err := db.Raw(sql).Find(&txCnts).Error
 	if err != nil {
 		return txCnts, err
@@ -175,7 +175,7 @@ func CountTxNums() (int64, error) {
 // get all points
 func GetAllPoints() ([]PointCnter, error) {
 	var points []PointCnter
-	err := db.Model(&Transaction{}).Select("point, count(id) as cnt").Where("type = ? or type = ?", "s", "p").Group("point").Find(&points).Error
+	err := db.Model(&Transaction{}).Select("point, count(id) as cnt").Where("type = ? or type = ?", "s", "p").Group("point").Order("cnt DESC").Find(&points).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}

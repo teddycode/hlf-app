@@ -3,6 +3,8 @@ module github.com/fabric-app
 go 1.13
 
 require (
+	cloud.google.com/go v0.37.4 // indirect
+	github.com/8treenet/gcache v1.1.8
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/astaxie/beego v1.12.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -18,7 +20,8 @@ require (
 	github.com/hyperledger/fabric-amcl v0.0.0-20200424173818-327c9e2cf77a // indirect
 	github.com/hyperledger/fabric-protos-go v0.0.0-20191121202242-f5500d5e3e85
 	github.com/hyperledger/fabric-sdk-go v1.0.0-beta2
-	github.com/jinzhu/gorm v1.9.11
+	//github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric v0.0.0-20190822125948-d2b42602e52e
+	github.com/jinzhu/gorm v1.9.12
 	github.com/mailru/easyjson v0.7.1 // indirect
 	github.com/mattn/go-isatty v0.0.11 // indirect
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7 // indirect

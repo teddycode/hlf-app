@@ -93,9 +93,12 @@ func (s *SmartContract) add(APIstub shim.ChaincodeStubInterface, args []string) 
 	}
 	unixNano := timeStampToUnixNanoStr(ts.Seconds, int64(ts.Nanos))
 	index := args[0] + "~" + args[1] + "~" + unixNano
-	//fmt.Printf("index:%s\n", index)
-
-	APIstub.PutState(index, []byte(args[2]+"~"+APIstub.GetTxID()))
+	txID :=  APIstub.GetTxID()
+	if len(txID) == 0 {
+		return shim.Error("Invalid tx")
+	}
+	fmt.Printf("index:%s\n", index)
+	APIstub.PutState(index, []byte(args[2]+"~"+txID))
 	return shim.Success(nil)
 }
 
@@ -141,8 +144,7 @@ func (s *SmartContract) query(APIstub shim.ChaincodeStubInterface, args []string
 		if bArrayMemberAlreadyWritten == true {
 			buffer.WriteString(",")
 		}
-		buffer.WriteString("{\"k\":")
-		buffer.WriteString("\"")
+		buffer.WriteString("{\"k\":\"")
 		buffer.WriteString(queryResponse.Key)
 		buffer.WriteString("\"")
 

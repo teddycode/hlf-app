@@ -113,7 +113,7 @@ func Reg(c *gin.Context) {
 	newUser.Secret = rand.RandStringBytesMaskImprSrcUnsafe(5)
 	newUser.CreatedOn = int(time.Now().Unix())
 	newUser.ModifiedOn = int(time.Now().Unix())
-	newUser.Header = "default"
+	newUser.Header = "default.png"
 	userId, isSuccess := models.NewUser(&newUser)
 	if userId > 0 {
 		appG.Response(http.StatusOK, e.SUCCESS, map[string]interface{}{"id": userId})
@@ -601,7 +601,13 @@ func SetHeader(c *gin.Context) {
 		appG.Response(http.StatusOK, e.ERROR_FILE_SAVE_FAILED, "Save file failed")
 		return
 	}
-	_, err = models.UpdateUserheader(userName, f.Filename) // update table
+	var fn string
+	if len(f.Filename) > 10 {
+		fn = f.Filename[:10]
+	} else {
+		fn = f.Filename
+	}
+	_, err = models.UpdateUserheader(userName, fn) // update table
 	if err != nil {
 		appG.Response(http.StatusOK, e.ERROR_DB_ERROR, "save images  failed!")
 		return
@@ -640,6 +646,9 @@ func GetHeader(c *gin.Context) {
 		appG.Response(http.StatusOK, e.ERROR_NOT_EXIST, "Empty")
 		return
 	}
+	if strings.Compare(fn, "default.png") == 0 {
+		userName = ""
+	}
 	appG.Response(http.StatusOK, e.SUCCESS, path.Join(userName, fn))
 }
 
@@ -652,6 +661,7 @@ func GetHeader(c *gin.Context) {
 // @Failure 400 {string} gin.Context.JSON
 // @Router  /api/v1/user/getRecords  [GET]
 func GetRecords(c *gin.Context) {
+	st := time.Now()
 	appG := app.Gin{C: c}
 	userName, code := getUserNameFromToken(c)
 	if code != e.SUCCESS {
@@ -663,5 +673,6 @@ func GetRecords(c *gin.Context) {
 		appG.Response(http.StatusOK, e.ERROR_NOT_EXIST, "Empty")
 		return
 	}
+	appG.C.Writer.Header().Set("t", time.Since(st).String())
 	appG.Response(http.StatusOK, e.SUCCESS, rs)
 }

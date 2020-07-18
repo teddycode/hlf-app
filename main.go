@@ -20,7 +20,7 @@ import (
 // @version 1.0
 // @description  trace
 
-// @host 202.193.60.112:8000
+// @host 202.193.60.108:8000
 // @BasePath /
 
 // @securityDefinitions.apikey ApiKeyAuth

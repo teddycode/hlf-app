@@ -1,14 +1,19 @@
 package v1
 
 import (
+	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"github.com/fabric-app/models"
 	"github.com/fabric-app/models/schema"
 	"github.com/fabric-app/pkg/app"
 	"github.com/fabric-app/pkg/e"
 	"github.com/fabric-app/pkg/setting"
 	"github.com/gin-gonic/gin"
+	"io/ioutil"
 	"net/http"
+	"path"
+	"strings"
 	"time"
 )
 
@@ -27,6 +32,7 @@ const (
 // @Failure 401 {string} gin.Context.JSON
 // @Router /api/v1/trace/sensor  [POST]
 func Sensors(c *gin.Context) {
+	st := time.Now()
 	appG := app.Gin{C: c}
 	var reqInfo schema.SensorSwag
 	err := c.BindJSON(&reqInfo)
@@ -39,7 +45,8 @@ func Sensors(c *gin.Context) {
 		appG.Response(http.StatusOK, e.ERROR_CC_QUERY_FAILED, "Chaincode query failed.")
 		return
 	}
-	appG.Response(http.StatusOK, e.ERROR_ADD_FAIL, res)
+	appG.C.Writer.Header().Set("t", time.Since(st).String())
+	appG.Response(http.StatusOK, e.SUCCESS, res)
 }
 
 // @Summary  图片信息溯源
@@ -51,6 +58,7 @@ func Sensors(c *gin.Context) {
 // @Failure 401 {string} gin.Context.JSON
 // @Router /api/v1/trace/picture  [POST]
 func Pictures(c *gin.Context) {
+	st := time.Now()
 	appG := app.Gin{C: c}
 	var reqInfo schema.PicSwag
 	err := c.BindJSON(&reqInfo)
@@ -63,7 +71,8 @@ func Pictures(c *gin.Context) {
 		appG.Response(http.StatusOK, e.ERROR_CC_QUERY_FAILED, "Chaincode query failed.")
 		return
 	}
-	appG.Response(http.StatusOK, e.ERROR_ADD_FAIL, res)
+	appG.C.Writer.Header().Set("t", time.Since(st).String())
+	appG.Response(http.StatusOK, e.SUCCESS, res)
 }
 
 // @Summary  农事数据溯源
@@ -75,6 +84,7 @@ func Pictures(c *gin.Context) {
 // @Failure 401 {string} gin.Context.JSON
 // @Router /api/v1/trace/farmData  [POST]
 func Farms(c *gin.Context) {
+	st := time.Now()
 	appG := app.Gin{C: c}
 	var reqInfo schema.FarmSwag
 	err := c.BindJSON(&reqInfo)
@@ -87,6 +97,7 @@ func Farms(c *gin.Context) {
 		appG.Response(http.StatusOK, e.ERROR_CC_QUERY_FAILED, "Chaincode query failed.")
 		return
 	}
+	appG.C.Writer.Header().Set("t", time.Since(st).String())
 	appG.Response(http.StatusOK, e.SUCCESS, res)
 }
 
@@ -133,6 +144,7 @@ func Farms(c *gin.Context) {
 // @Failure 401 {string} gin.Context.JSON
 // @Router /api/v1/trace/verify  [POST]
 func Verifier(c *gin.Context) {
+	st := time.Now()
 	appG := app.Gin{C: c}
 	var reqInfo schema.VerifySwag
 	err := c.BindJSON(&reqInfo)
@@ -145,7 +157,55 @@ func Verifier(c *gin.Context) {
 		appG.Response(http.StatusOK, e.ERROR_LEDGER_FAILED, "ledger query failed.")
 		return
 	}
+	appG.C.Writer.Header().Set("t", time.Since(st).String())
 	appG.Response(http.StatusOK, e.SUCCESS, res)
+}
+
+// @Summary  图片哈希校验
+// @Tags 溯源查询
+// @Accept json
+// @Produce  json
+// @Param   body  body   schema.CheckPic   true "test"
+// @Success 200 {string} gin.Context.JSON
+// @Failure 401 {string} gin.Context.JSON
+// @Router /api/v1/trace/check  [POST]
+func CheckPic(c *gin.Context) {
+	st := time.Now()
+	appG := app.Gin{C: c}
+	var reqInfo schema.CheckPic
+	err := c.BindJSON(&reqInfo)
+	if err != nil {
+		appG.Response(http.StatusOK, e.INVALID_PARAMS, "param bind failed.")
+		return
+	}
+	var httpClient = &http.Client{}
+	url := path.Join( reqInfo.Point, reqInfo.Date, reqInfo.Hash+".jpg")
+	httpRequest, _ := http.NewRequest("GET", "http://202.193.60.10/"+url, nil)
+	// 发送请求
+	resp, err := httpClient.Do(httpRequest)
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR, "request picture failed:"+err.Error())
+		return
+	}
+	defer resp.Body.Close()
+	response, _ := ioutil.ReadAll(resp.Body)
+	picHash := sha256.Sum256(response)
+	ph:=fmt.Sprintf("%x", picHash)
+	if strings.Compare(ph, reqInfo.Hash) != 0 {
+		appG.Response(http.StatusOK, e.ERROR, map[string]interface{}{
+			"fileHash":  reqInfo.Hash,
+			"checkHash": ph,
+			"status":    false,
+		})
+		return
+	}
+	appG.C.Writer.Header().Set("t", time.Since(st).String())
+	appG.Response(http.StatusOK, e.SUCCESS, map[string]interface{}{
+		"fileHash":  reqInfo.Hash,
+		"checkHash": ph,
+		"status":    true,
+	})
+
 }
 
 // @Summary 图片信息上链接口
@@ -168,7 +228,7 @@ func UploaderPic(c *gin.Context) {
 	raw, _ := json.Marshal(&picInfo)
 	//	raw, _ := ioutil.ReadAll(c.Request.Body)
 	txID, err := BCS.InvokeCC("traceable", "add",
-		[][]byte{[]byte(picInfo.Type), []byte(picInfo.Point), raw}, setting.Peers)
+		[][]byte{[]byte("p"), []byte(picInfo.Point), raw}, setting.Peers)
 	if err != nil {
 		appG.Response(http.StatusOK, e.ERROR_CC_INVOKE_FAILED, "Chaincode traceable invoke failed.")
 		return
@@ -205,7 +265,7 @@ func UploaderSen(c *gin.Context) {
 	//raw, _ := ioutil.ReadAll(c.Request.Body)
 
 	txID, err := BCS.InvokeCC("traceable", "add",
-		[][]byte{[]byte(sensor.Type), []byte(sensor.Point), raw}, setting.Peers)
+		[][]byte{[]byte("s"), []byte(sensor.Point), raw}, setting.Peers)
 	if err != nil {
 		appG.Response(http.StatusOK, e.ERROR_CC_INVOKE_FAILED, "Chaincode traceable invoke failed.")
 		return

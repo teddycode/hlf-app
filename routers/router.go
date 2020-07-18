@@ -22,6 +22,8 @@ func InitRouter() *gin.Engine {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler)) //api注释文档
 	//用户头像静态资源
 	r.Static("/header", "./test/header/")
+	//图片资源服务
+	//r.Static("/images","./test/images/")
 
 	apiv1 := r.Group("/api/v1")
 	//用户登录
@@ -47,6 +49,8 @@ func InitRouter() *gin.Engine {
 	apiv1.POST("trace/farmData", v1.Farms)
 	//通过哈希值校验链上信息
 	apiv1.POST("trace/verify", v1.Verifier)
+	// 计算校验图片哈希
+	apiv1.POST("trace/check",v1.CheckPic)
 
 	apiv1.Use(jwt.JWT()) //令牌 验证中间件
 	{

@@ -117,7 +117,7 @@ func (c *Client) InvokeCC(cc, fun string, args [][]byte, peers []string) (fab.Tr
 	return resp.TransactionID, nil
 }
 
-func (c *Client) QueryCC(cc, fun string, keys []string, peer string) ([]byte, error) {
+func (c *Client) QueryCC(cc, fun string, keys []string, peer string) (string, error) {
 	// new channel request for query
 	req := channel.Request{
 		ChaincodeID: cc,
@@ -129,13 +129,12 @@ func (c *Client) QueryCC(cc, fun string, keys []string, peer string) ([]byte, er
 	reqPeers := channel.WithTargetEndpoints(peer)
 	resp, err := c.cc.Query(req, reqPeers)
 	if err != nil {
-		return nil, errors.WithMessage(err, "query chaincode error")
+		return "", errors.WithMessage(err, "query chaincode error")
 	}
-
 	//log.Printf("Query chaincode tx response:\ntx: %s\nresult: %v\n\n",
 	//	resp.TransactionID,
 	//	string(resp.Payload))
-	return resp.Payload, nil
+	return string(resp.Payload), nil
 }
 
 //	args := packArgs([]string{"init", "a", "1000", "b", "2000"})

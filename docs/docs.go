@@ -148,6 +148,45 @@ var doc = `{
                 }
             }
         },
+        "/api/v1/trace/check": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "溯源查询"
+                ],
+                "summary": "图片哈希校验",
+                "parameters": [
+                    {
+                        "description": "test",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.CheckPic"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/trace/farmData": {
             "post": {
                 "consumes": [
@@ -903,19 +942,22 @@ var doc = `{
             "type": "object",
             "properties": {
                 "name": {
+                    "description": "图片文件名（也是脸上哈希）",
                     "type": "string",
                     "example": "b9c52e66c1ebfc826e324a394a106f9dc9550fed4390808b2d8932ff91c92b5a"
                 },
                 "point": {
+                    "description": "采集点",
                     "type": "string",
-                    "example": "point001"
+                    "example": "19372180"
                 },
                 "size": {
+                    "description": "图片大小",
                     "type": "string",
-                    "example": "1024"
+                    "example": "102400"
                 },
                 "type": {
-                    "description": "0: sensor, 1:pic,",
+                    "description": "来源 0: sensor, 1:pic,",
                     "type": "string",
                     "example": "sensor"
                 }
@@ -925,20 +967,41 @@ var doc = `{
             "type": "object",
             "properties": {
                 "point": {
+                    "description": "采集点",
                     "type": "string",
-                    "example": "point001"
+                    "example": "19372180"
                 },
                 "type": {
+                    "description": "传感器参数类型",
                     "type": "string",
                     "example": "temperature"
                 },
                 "unit": {
+                    "description": "单位",
                     "type": "string",
                     "example": "℃"
                 },
                 "value": {
+                    "description": "参数数值",
                     "type": "string",
                     "example": "26.3"
+                }
+            }
+        },
+        "schema.CheckPic": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string",
+                    "example": "2020-07-13"
+                },
+                "hash": {
+                    "type": "string",
+                    "example": "d8963f1db11e7ca690f159b7e8173205854d7914aba7b47ede48684175b8bc39"
+                },
+                "point": {
+                    "type": "string",
+                    "example": "0018DE743E31"
                 }
             }
         },
@@ -991,11 +1054,11 @@ var doc = `{
             "properties": {
                 "end_time": {
                     "type": "string",
-                    "example": "1595382265"
+                    "example": "9999999999"
                 },
                 "point": {
                     "type": "string",
-                    "example": "point001"
+                    "example": "teddy"
                 },
                 "star_time": {
                     "type": "string",
@@ -1027,7 +1090,7 @@ var doc = `{
                 },
                 "point": {
                     "type": "string",
-                    "example": "point001"
+                    "example": "0018DE743E31"
                 },
                 "star_time": {
                     "type": "string",
@@ -1094,7 +1157,7 @@ var doc = `{
                 },
                 "point": {
                     "type": "string",
-                    "example": "point001"
+                    "example": "0018DE743E31"
                 },
                 "star_time": {
                     "type": "string",
@@ -1106,6 +1169,7 @@ var doc = `{
             "type": "object",
             "properties": {
                 "hash": {
+                    "description": "脸上哈希",
                     "type": "string",
                     "example": "b9c52e66c1ebfc826e324a394a106f9dc9550fed4390808b2d8932ff91c92b5a"
                 }
@@ -1133,7 +1197,7 @@ type swaggerInfo struct {
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
 	Version:     "1.0",
-	Host:        "202.193.60.112:8000",
+	Host:        "202.193.60.108:8000",
 	BasePath:    "/",
 	Schemes:     []string{},
 	Title:       "fabirc bcs API",

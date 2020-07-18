@@ -88,7 +88,7 @@ func UpdateUserInfo(newUser *User) (int, error) {
 	oldUser.Address = newUser.Address
 	oldUser.Phone = newUser.Phone
 	oldUser.ModifiedOn = int(time.Now().Unix())
-	err = db.Save(oldUser).Error
+	err = db.Save(&oldUser).Error
 	if err != nil {
 		return 0, nil
 	}
