@@ -3,11 +3,11 @@ package bcs
 import "C"
 import (
 	"fmt"
+	rand2 "github.com/fabric-app/pkg/util/rand"
 	clientMSP "github.com/hyperledger/fabric-sdk-go/pkg/client/msp"
 	"github.com/hyperledger/fabric-sdk-go/pkg/core/cryptosuite"
 	"github.com/hyperledger/fabric-sdk-go/pkg/msp"
 	"log"
-	"math/rand"
 	"os"
 )
 
@@ -17,11 +17,11 @@ func (c *Client) NewCAClient() {
 	mspClient, err := clientMSP.New(ctxProvider)
 	//registrarEnrollID, registrarEnrollSecret := c.getRegistrarEnrollmentCredentials(ctxProvider)
 
-	err = mspClient.Enroll("admin", clientMSP.WithSecret("adminpw"))
+	err = mspClient.Enroll("admin", clientMSP.WithSecret("1b48f5aae5d425142058fd2412e815251d26dd3e1175ee8e555f4dc4ed56b6fa"))
 	if err != nil {
 		log.Fatalf("enroll registrar failed: %v", err)
 	}
-	c.mc = mspClient
+	c.MC = mspClient
 }
 
 func (c *Client) removeUserData() {
@@ -71,37 +71,23 @@ func (c *Client) removePath(storePath string) {
 //	return caConfig.Registrar.EnrollID, caConfig.Registrar.EnrollSecret
 //}
 
-func GenerateRandomID() string {
-	return randomString(10)
-}
-
-// Utility to create random string of strlen length
-func randomString(strlen int) string {
-	const chars = "abcdefghijklmnopqrstuvwxyz0123456789"
-	result := make([]byte, strlen)
-	for i := 0; i < strlen; i++ {
-		result[i] = chars[rand.Intn(len(chars))]
-	}
-	return string(result)
-}
-
 // Register a new user
 func (c *Client) RegisterUser(username, orgName, secret, identityTypeUser string) (string, bool) {
 	// Register the new user
 	log.Printf("User not found, registering new user: %v", username)
 	testAttributes := []clientMSP.Attribute{
 		{
-			Name:  GenerateRandomID(),
-			Value: fmt.Sprintf("%s:ecert", GenerateRandomID()),
+			Name:  rand2.RandStringBytesMaskImprSrcUnsafe(10),
+			Value: fmt.Sprintf("%s:ecert", rand2.RandStringBytesMaskImprSrcUnsafe(10)),
 			ECert: true,
 		},
 		{
-			Name:  GenerateRandomID(),
-			Value: fmt.Sprintf("%s:ecert", GenerateRandomID()),
+			Name:  rand2.RandStringBytesMaskImprSrcUnsafe(10),
+			Value: fmt.Sprintf("%s:ecert", rand2.RandStringBytesMaskImprSrcUnsafe(10)),
 			ECert: true,
 		},
 	}
-	_, err := c.mc.Register(&clientMSP.RegistrationRequest{
+	_, err := c.MC.Register(&clientMSP.RegistrationRequest{
 		Name:        username,
 		Type:        identityTypeUser,
 		Attributes:  testAttributes,
@@ -125,13 +111,13 @@ func (c *Client) EnrollUser(username, orgName, secret, identityTypeUser string) 
 	//	log.Fatalf("Failed to create msp client: %s", err.Error())
 	//	return username + " login error :" + err.Error(), false
 	//}
-	err := c.mc.Enroll(username, clientMSP.WithSecret(secret))
+	err := c.MC.Enroll(username, clientMSP.WithSecret(secret))
 	if err != nil {
 		log.Printf("enroll %s failed: %v", username, err)
 		return err.Error(), false
 	}
-	signingIdentity, err := c.mc.GetSigningIdentity(username)
-	log.Printf("%s: %s", signingIdentity.Identifier().ID, string(signingIdentity.EnrollmentCertificate()[:]))
+	//	signingIdentity, err := c.MC.GetSigningIdentity(username)
+	//	log.Printf("%s: %s", signingIdentity.Identifier().ID, string(signingIdentity.EnrollmentCertificate()[:]))
 	return username + " login success", true
 }
 
@@ -142,7 +128,7 @@ func (c *Client) RevokeUser(username, orgName, secret, identityTypeUser string) 
 		Force:  true,
 		CAName: "ca.org1.lzawt.com",
 	}
-	idr, err := c.mc.RemoveIdentity(&request)
+	idr, err := c.MC.RemoveIdentity(&request)
 	if err != nil {
 		log.Printf("enroll %s failed: %v", username, err)
 		return err.Error(), false
@@ -158,27 +144,28 @@ func (c *Client) GetRegisteredUser(username, orgName, secret, identityTypeUser s
 	//if err != nil {
 	//	log.Fatalf("Failed to create msp client: %s", err.Error())
 	//}
-	signingIdentity, err := c.mc.GetSigningIdentity(username)
+
+	signingIdentity, err := c.MC.GetSigningIdentity(username)
 	if err != nil {
 		log.Printf("Check if user %s is enrolled: %s", username, err.Error())
 		testAttributes := []clientMSP.Attribute{
 			{
-				Name:  GenerateRandomID(),
-				Value: fmt.Sprintf("%s:ecert", GenerateRandomID()),
+				Name:  rand2.RandStringBytesMaskImprSrcUnsafe(10),
+				Value: fmt.Sprintf("%s:ecert", rand2.RandStringBytesMaskImprSrcUnsafe(10)),
 				ECert: true,
 			},
 			{
-				Name:  GenerateRandomID(),
-				Value: fmt.Sprintf("%s:ecert", GenerateRandomID()),
+				Name:  rand2.RandStringBytesMaskImprSrcUnsafe(10),
+				Value: fmt.Sprintf("%s:ecert", rand2.RandStringBytesMaskImprSrcUnsafe(10)),
 				ECert: true,
 			},
 		}
 
 		// Register the new user
-		identity, err := c.mc.GetIdentity(username)
+		identity, err := c.MC.GetIdentity(username)
 		if true {
 			log.Printf("User %s does not exist, registering new user", username)
-			_, err = c.mc.Register(&clientMSP.RegistrationRequest{
+			_, err = c.MC.Register(&clientMSP.RegistrationRequest{
 				Name:        username,
 				Type:        identityTypeUser,
 				Attributes:  testAttributes,
@@ -189,7 +176,7 @@ func (c *Client) GetRegisteredUser(username, orgName, secret, identityTypeUser s
 			log.Printf("Identity: %s", identity.Secret)
 		}
 		//enroll user
-		err = c.mc.Enroll(username, clientMSP.WithSecret(secret))
+		err = c.MC.Enroll(username, clientMSP.WithSecret(secret))
 		if err != nil {
 			log.Printf("enroll %s failed: %v", username, err)
 			return "failed " + err.Error(), false
@@ -199,4 +186,24 @@ func (c *Client) GetRegisteredUser(username, orgName, secret, identityTypeUser s
 	}
 	log.Printf("%s: %s", signingIdentity.Identifier().ID, string(signingIdentity.EnrollmentCertificate()[:]))
 	return username + " already enrolled", true
+}
+
+func (c *Client) GetAllUsers() ([]string, error) {
+	var users []string
+	ids, err := c.MC.GetAllIdentities()
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range ids {
+		users = append(users, v.ID)
+	}
+	return users, nil
+}
+
+func (c *Client) ModifyUserSecret(user, passwd string) ([]byte, error) {
+	res, err := c.MC.ModifyIdentity(&clientMSP.IdentityRequest{ID: user, Affiliation: "org2", Secret: passwd})
+	if err != nil {
+		return nil, err
+	}
+	return []byte(res.ID), nil
 }

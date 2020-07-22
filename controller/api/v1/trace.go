@@ -40,7 +40,7 @@ func Sensors(c *gin.Context) {
 		appG.Response(http.StatusOK, e.INVALID_PARAMS, nil)
 	}
 	res, err := BCS.QueryCC("traceable", "query",
-		[]string{"s", reqInfo.Point, reqInfo.StarTime, reqInfo.EndTime}, setting.Peers[0])
+		[]string{"s", reqInfo.Point, reqInfo.StarTime, reqInfo.EndTime, reqInfo.PageSize, reqInfo.BookMark}, setting.Peers[0])
 	if err != nil {
 		appG.Response(http.StatusOK, e.ERROR_CC_QUERY_FAILED, "Chaincode query failed.")
 		return
@@ -66,7 +66,7 @@ func Pictures(c *gin.Context) {
 		appG.Response(http.StatusOK, e.INVALID_PARAMS, nil)
 	}
 	res, err := BCS.QueryCC("traceable", "query",
-		[]string{"p", reqInfo.Point, reqInfo.StarTime, reqInfo.EndTime}, setting.Peers[0])
+		[]string{"p", reqInfo.Point, reqInfo.StarTime, reqInfo.EndTime, reqInfo.PageSize, reqInfo.BookMark}, setting.Peers[0])
 	if err != nil {
 		appG.Response(http.StatusOK, e.ERROR_CC_QUERY_FAILED, "Chaincode query failed.")
 		return
@@ -92,9 +92,9 @@ func Farms(c *gin.Context) {
 		appG.Response(http.StatusOK, e.INVALID_PARAMS, nil)
 	}
 	res, err := BCS.QueryCC("traceable", "query",
-		[]string{"f", reqInfo.Point, reqInfo.StarTime, reqInfo.EndTime}, setting.Peers[0])
+		[]string{"f", reqInfo.User, reqInfo.StarTime, reqInfo.EndTime, reqInfo.PageSize, reqInfo.BookMark}, setting.Peers[0])
 	if err != nil {
-		appG.Response(http.StatusOK, e.ERROR_CC_QUERY_FAILED, "Chaincode query failed.")
+		appG.Response(http.StatusOK, e.ERROR_CC_QUERY_FAILED, "Chaincode query failed:"+err.Error())
 		return
 	}
 	appG.C.Writer.Header().Set("t", time.Since(st).String())
@@ -179,7 +179,7 @@ func CheckPic(c *gin.Context) {
 		return
 	}
 	var httpClient = &http.Client{}
-	url := path.Join( reqInfo.Point, reqInfo.Date, reqInfo.Hash+".jpg")
+	url := path.Join(reqInfo.Point, reqInfo.Date, reqInfo.Hash+".jpg")
 	httpRequest, _ := http.NewRequest("GET", "http://202.193.60.10/"+url, nil)
 	// 发送请求
 	resp, err := httpClient.Do(httpRequest)
@@ -190,7 +190,7 @@ func CheckPic(c *gin.Context) {
 	defer resp.Body.Close()
 	response, _ := ioutil.ReadAll(resp.Body)
 	picHash := sha256.Sum256(response)
-	ph:=fmt.Sprintf("%x", picHash)
+	ph := fmt.Sprintf("%x", picHash)
 	if strings.Compare(ph, reqInfo.Hash) != 0 {
 		appG.Response(http.StatusOK, e.ERROR, map[string]interface{}{
 			"fileHash":  reqInfo.Hash,

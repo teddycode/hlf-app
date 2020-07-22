@@ -107,7 +107,7 @@ certificateAuthorities:
     # needed to enroll and invoke new users.
     registrar:
       enrollId: admin
-      enrollSecret: adminpw
+      enrollSecret: 70E76A15DA00E6301ADE718CC9416F79
     # [Optional] The optional name of the CA.
     caName: ca.org1.lzawt.com
 

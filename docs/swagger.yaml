@@ -3,12 +3,12 @@ definitions:
   schema.AuthSwag:
     properties:
       password:
-        description: 登录密码
-        example: "1234"
+        description: 登录密码(管理员)
+        example: lzawt_admin
         type: string
       user_name:
-        description: 登录邮箱
-        example: teddy
+        description: 登录用户名
+        example: admin
         type: string
     type: object
   schema.BCPic:
@@ -95,14 +95,22 @@ definitions:
     type: object
   schema.FarmSwag:
     properties:
+      book_mark:
+        description: 书签bookmark
+        example: f~admin~1594382265
+        type: string
       end_time:
         example: "9999999999"
         type: string
-      point:
-        example: teddy
+      page_size:
+        description: 页大小
+        example: "10"
         type: string
       star_time:
         example: "1594382265"
+        type: string
+      user:
+        example: admin
         type: string
     type: object
   schema.PasswordSwag:
@@ -118,8 +126,16 @@ definitions:
     type: object
   schema.PicSwag:
     properties:
+      book_mark:
+        description: 书签bookmark
+        example: p~0018DE743E31~1594382265
+        type: string
       end_time:
         example: "1595382265"
+        type: string
+      page_size:
+        description: 页大小
+        example: "10"
         type: string
       point:
         example: 0018DE743E31
@@ -146,6 +162,10 @@ definitions:
         description: 密码
         example: "1234"
         type: string
+      role:
+        description: 用户角色   //0:管理员,1：普通员工
+        example: "1"
+        type: string
       username:
         description: 用户名
         example: teddy
@@ -157,20 +177,29 @@ definitions:
     type: object
   schema.RevokeSwag:
     properties:
-      identity:
-        example: "4522261111111111"
-        type: string
       user_name:
-        example: teddy
-        type: string
+        example:
+        - teddy
+        - teddy1
+        items:
+          type: string
+        type: array
     type: object
   schema.SensorSwag:
     properties:
+      book_mark:
+        description: 书签bookmark
+        example: s~19372180~1594382265
+        type: string
       end_time:
         example: "1595382265"
         type: string
+      page_size:
+        description: 页大小
+        example: "10"
+        type: string
       point:
-        example: 0018DE743E31
+        example: "19372180"
         type: string
       star_time:
         example: "1594382265"
@@ -227,10 +256,17 @@ paths:
       summary: 查询所有节点信息
       tags:
       - 区块链监控
-  /api/v1/bcs/points:
+  /api/v1/bcs/points/{number}:
     get:
       consumes:
       - application/json
+      parameters:
+      - description: 查询限制返回的数量
+        format: int64
+        in: path
+        name: number
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
@@ -509,12 +545,32 @@ paths:
       summary: 用户记录数查询
       tags:
       - 用户管理
+  /api/v1/user/list:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 已注册的用户列表
+      tags:
+      - 用户管理
   /api/v1/user/login:
     post:
       consumes:
       - application/json
       parameters:
-      - description: 用户名、密码
+      - description: 用户名、密码,admin是默认的管理员账号
         in: body
         name: account
         required: true
@@ -695,7 +751,9 @@ paths:
           description: Bad Request
           schema:
             type: string
-      summary: 用户注销
+      security:
+      - ApiKeyAuth: []
+      summary: 注销用户
       tags:
       - 用户管理
   /api/v1/user/setHeader:

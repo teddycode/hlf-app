@@ -26,10 +26,10 @@ services:
       - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/63db1a92c35491fc28dd419a6b7cb298c4f180731bfba7dfb195bf9884d8d29a_sk
     ports:
       - "7054:7054"
-    command: sh -c 'fabric-ca-server start --cfg.identities.allowremove --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.org1.lzawt.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/63db1a92c35491fc28dd419a6b7cb298c4f180731bfba7dfb195bf9884d8d29a_sk -b admin:adminpw -d'
+    command: sh -c 'fabric-ca-server start --cfg.identities.allowremove --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.org1.lzawt.com-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/63db1a92c35491fc28dd419a6b7cb298c4f180731bfba7dfb195bf9884d8d29a_sk -b admin:1b48f5aae5d425142058fd2412e815251d26dd3e1175ee8e555f4dc4ed56b6fa -d'
     volumes:
       - ./crypto-config/peerOrganizations/org1.lzawt.com/ca/:/etc/hyperledger/fabric-ca-server-config
-      #- ./fabric-ca-server/ca0/:/etc/hyperledger/fabric-ca-server
+      - ./fabric-ca-server/ca0/:/etc/hyperledger/fabric-ca-server
     container_name: ca.org1.lzawt.com
     networks:
       - byfn

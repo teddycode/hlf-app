@@ -2,29 +2,29 @@ package schema
 
 //用户表
 type User struct {
-	ID         uint    `json:"id"`
-	UserName   string  `json:"user_name"`
-	Email      string  `json:"email"`
-	Phone      string  `json:"phone"`
-	Password   string  `json:"password"`
-	balance    float32 `json:"balance"`
-	CreatedOn  uint    `json:"created_on"`
-	ModifiedOn uint    `json:"modified_on"`
-	DeletedOn  uint    `json:"deleted_on"`
-	Secret     string  `json:"secret"`
+	ID         int    `json:"id"`
+	UserName   string `json:"user_name"`
+	Email      string `json:"email"`
+	Phone      string `json:"phone"`
+	Password   string `json:"password"`
+	CreatedOn  uint   `json:"created_on"`
+	ModifiedOn uint   `json:"modified_on"`
+	DeletedOn  uint   `json:"deleted_on"`
+	Secret     string `json:"secret"`
 }
 
 //注册
 type RegSwag struct {
 	Username string `json:"username" binding:"required" example:"teddy"`            //用户名
+	Role     string `json:"role" example:"1"`                                       // 用户角色   //0:管理员,1：普通员工
 	Identity string `json:"identity" binding:"required" example:"4522261111111111"` // identity
 	Password string `json:"password"  binding:"required" example:"1234"`            //密码
 }
 
 //登录
 type AuthSwag struct {
-	UserName string `json:"user_name" example:"teddy"` //登录邮箱
-	Password string `json:"password" example:"1234"`   //登录密码
+	UserName string `json:"user_name" example:"admin"`      //登录用户名
+	Password string `json:"password" example:"lzawt_admin"` //登录密码(管理员)
 }
 
 //修改密码
@@ -51,6 +51,16 @@ type FarmRecordSwag struct {
 }
 
 type RevokeSwag struct {
-	UserName string `json:"user_name" example:"teddy"`
-	Identity string `json:"identity" example:"4522261111111111"`
+	UserName []string `json:"user_name" example:"teddy,teddy1"`
+}
+
+// 返回用户列表
+type UserListSwag struct {
+	ID        int    `json:"id"`
+	UserName  string `json:"user_name"`
+	Email     string `json:"email"`
+	Phone     string `json:"phone"`
+	Password  string `json:"password"`
+	CreatedOn int    `json:"created_on"`
+	Role      int    `json:"role"`
 }

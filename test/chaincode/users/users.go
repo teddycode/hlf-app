@@ -21,10 +21,13 @@ const (
 type Auth struct {
 }
 
+// 默认新增管理员用户
 func (this *Auth) Init(stub shim.ChaincodeStubInterface) peer.Response {
-	fmt.Println("Chaincode init success!")
+	res := this.add(stub, []string{"admin", ROLE_ADMIN, "*"})
+	fmt.Println("Chaincode init success: ", res.Payload)
 	return shim.Success(nil)
 }
+
 
 func (this *Auth) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
 	function, parameters := stub.GetFunctionAndParameters()

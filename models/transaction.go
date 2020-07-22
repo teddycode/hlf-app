@@ -149,7 +149,7 @@ func CountTxNumByYear() ([]TxCnter, error) {
 			sql += " UNION "
 		}
 		m--
-		if m < 0 {
+		if m < 1 {
 			m = 12
 			y--
 		}
@@ -173,9 +173,9 @@ func CountTxNums() (int64, error) {
 }
 
 // get all points
-func GetAllPoints() ([]PointCnter, error) {
+func GetAllPoints(pageSize string) ([]PointCnter, error) {
 	var points []PointCnter
-	err := db.Model(&Transaction{}).Select("point, count(id) as cnt").Where("type = ? or type = ?", "s", "p").Group("point").Order("cnt DESC").Find(&points).Error
+	err := db.Limit(pageSize).Model(&Transaction{}).Select("point, count(id) as cnt").Where("type = ? or type = ?", "s", "p").Group("point").Order("cnt DESC").Find(&points).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}

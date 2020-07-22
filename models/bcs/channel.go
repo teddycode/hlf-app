@@ -26,7 +26,7 @@ type PeerInfo struct {
 }
 
 func (c *Client) GetBlockHeight() (string, error) {
-	chainInfo, err := c.lc.QueryInfo()
+	chainInfo, err := c.LC.QueryInfo()
 	if err != nil {
 		return "", err
 	}
@@ -34,7 +34,7 @@ func (c *Client) GetBlockHeight() (string, error) {
 }
 
 func (c *Client) QueryTxByID(txid string, endpoint string) (string, error) {
-	transactions, err := c.lc.QueryTransaction(fab.TransactionID(txid), ledger.WithTargetEndpoints(endpoint))
+	transactions, err := c.LC.QueryTransaction(fab.TransactionID(txid), ledger.WithTargetEndpoints(endpoint))
 	if err != nil {
 		logging.Error("QueryTransaction error: " + err.Error())
 		return "", err
@@ -75,7 +75,7 @@ func (c *Client) QueryTxByID(txid string, endpoint string) (string, error) {
 }
 
 //func (c *Client) QueryTxByID(txid string, endpoint string) ([]byte, error) {
-//	transactions, err := c.lc.QueryTransaction(fab.TransactionID(txid), ledger.WithTargetEndpoints(endpoint))
+//	transactions, err := c.LC.QueryTransaction(fab.TransactionID(txid), ledger.WithTargetEndpoints(endpoint))
 //	if err != nil {
 //		logging.Error("QueryTransaction error: " + err.Error())
 //		return nil, err

@@ -36,7 +36,7 @@ func InitRouter() *gin.Engine {
 	//条件查询交易数
 	apiv1.POST("bcs/transactions", v1.Transactions)
 	//查询所有采集点及其信息数量
-	apiv1.GET("bcs/points", v1.Points)
+	apiv1.GET("bcs/points/:number", v1.Points)
 	// 查询所有节点名称
 	apiv1.GET("bcs/peers", v1.Peers)
 
@@ -55,6 +55,8 @@ func InitRouter() *gin.Engine {
 	apiv1.Use(jwt.JWT()) //令牌 验证中间件
 	{
 		/* 用户管理类 */
+		//用户列表
+		apiv1.GET("user/list", v1.List)
 		//当前用户信息查询
 		apiv1.GET("user/current", v1.CurrentUser)
 		//刷新用户token

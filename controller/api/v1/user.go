@@ -2,6 +2,7 @@ package v1
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/fabric-app/models"
 	"github.com/fabric-app/models/bcs"
@@ -36,6 +37,20 @@ var BCS *bcs.Client
 
 func init() {
 	BCS = bcs.New(setting.BcConf, "org1", "Admin", "Admin", "mychannel")
+	// admin user
+	_, err := models.NewUser(&models.User{
+		UserName: "admin",
+		Identity: "*",
+		Password: hash.EncodeSHA256("lzawt_admin"),
+		Role:     0,
+		Secret:   rand.RandStringBytesMaskImprSrcUnsafe(5),
+		Header:   "default.png",
+	})
+	if err != nil {
+		fmt.Println("Admin user add failed!")
+		return
+	}
+	fmt.Println("Admin user add success!")
 }
 
 type auth struct {
@@ -69,22 +84,22 @@ func Reg(c *gin.Context) {
 		return
 	}
 	// check if admin user
-	res, err := BCS.QueryCC("user", "check",
-		[]string{reqInfo.Username, hash.EncodeMD5(reqInfo.Identity)}, setting.Peers[0])
-	if err != nil {
-		appG.Response(http.StatusOK, e.ERROR_CC_QUERY_FAILED, err.Error())
-		return
-	}
-	_, err = strconv.ParseInt(string(res), 10, 32)
-	if err != nil {
-		appG.Response(http.StatusOK, e.ERROR, "Convert res failed.")
-		return
-	}
+	//res, err := BCS.QueryCC("user", "check",
+	//	[]string{reqInfo.Username, hash.EncodeSHA256(reqInfo.Identity)}, setting.Peers[0])
+	//if err != nil {
+	//	appG.Response(http.StatusOK, e.ERROR_CC_QUERY_FAILED, err.Error())
+	//	return
+	//}
+	//role, err := strconv.ParseInt(string(res), 10, 32)
+	//if err != nil {
+	//	appG.Response(http.StatusOK, e.ERROR, "Convert res failed.")
+	//	return
+	//}
 	//if role != ROLE_ADMIN {
 	//	appG.Response(http.StatusOK, e.ERROR_AUTH_NOT_PERMISSION, "No permission")
 	//	return
 	//}
-	passwdEncode := hash.EncodeMD5(reqInfo.Password)
+	passwdEncode := hash.EncodeSHA256(reqInfo.Password)
 	// register in ca
 	str, ok := BCS.RegisterUser(reqInfo.Username, "org1", passwdEncode, "user")
 	if !ok {
@@ -92,7 +107,7 @@ func Reg(c *gin.Context) {
 		return
 	}
 	// store user identity information in blockchain
-	txID, err := BCS.InvokeCC("user", "add", [][]byte{[]byte(reqInfo.Username), []byte(strconv.Itoa(ROLE_USER)), []byte(hash.EncodeMD5(reqInfo.Identity))}, setting.Peers)
+	txID, err := BCS.InvokeCC("user", "add", [][]byte{[]byte(reqInfo.Username), []byte(strconv.Itoa(ROLE_USER)), []byte(hash.EncodeSHA256(reqInfo.Identity))}, setting.Peers)
 	if err != nil {
 		str, _ := BCS.RevokeUser(reqInfo.Username, "org1", reqInfo.Password, "user")
 		logging.Error("Invoke failed: add user identity to chain failed!. Revoke res:", str)
@@ -109,7 +124,6 @@ func Reg(c *gin.Context) {
 	newUser.Identity = reqInfo.Identity
 	newUser.Role = ROLE_USER
 	newUser.Password = passwdEncode //密码md5值保存
-	newUser.CaSecure = passwdEncode //密码md5值保存
 	newUser.Secret = rand.RandStringBytesMaskImprSrcUnsafe(5)
 	newUser.CreatedOn = int(time.Now().Unix())
 	newUser.ModifiedOn = int(time.Now().Unix())
@@ -126,7 +140,7 @@ func Reg(c *gin.Context) {
 // @Tags 用户管理
 // @Accept json
 // @Produce  json
-// @Param   account  body   schema.AuthSwag   true "用户名、密码"
+// @Param   account  body   schema.AuthSwag   true "用户名、密码,admin是默认的管理员账号"
 // @Success 200 {string} gin.Context.JSON
 // @Failure 400 {string} gin.Context.JSON
 // @Router /api/v1/user/login  [POST]
@@ -140,7 +154,7 @@ func Auth(c *gin.Context) {
 		return
 	}
 
-	res, ok := BCS.EnrollUser(reqInfo.Username, "org1", hash.EncodeMD5(reqInfo.Password), "user")
+	res, ok := BCS.EnrollUser(reqInfo.Username, "org1", hash.EncodeSHA256(reqInfo.Password), "user")
 	if !ok {
 		appG.Response(http.StatusOK, e.ERROR_CA_ENROLL_FAILED, res)
 		return
@@ -164,60 +178,134 @@ func Auth(c *gin.Context) {
 	})
 }
 
-// @Summary  用户注销
+// @Summary 已注册的用户列表
+// @Tags 用户管理
+// @Accept json
+// @Produce  json
+// @Security ApiKeyAuth
+// @Success 200 {string} gin.Context.JSON
+// @Failure 400 {string} gin.Context.JSON
+// @Router /api/v1/user/list  [GET]
+func List(c *gin.Context) {
+	appG := app.Gin{C: c}
+	var users []schema.UserListSwag
+	claims := c.MustGet("claims").(*util.Claims)
+	if claims == nil {
+		appG.Response(http.StatusOK, e.ERROR_AUTH, nil)
+		return
+	}
+	id, err := strconv.Atoi(claims.Id)
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_NOT_EXIST, err)
+		return
+	}
+	user, err := models.FindUserById(id)
+	// check if admin user
+	res, err := BCS.QueryCC("user", "check",
+		[]string{user.UserName, user.Identity}, setting.Peers[0])
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_CC_QUERY_FAILED, nil)
+		return
+	}
+	role, err := strconv.ParseInt(res, 10, 32)
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR, "Convert res failed.")
+		return
+	}
+	if role != ROLE_ADMIN {
+		appG.Response(http.StatusOK, e.ERROR_AUTH, "No permission")
+		return
+	}
+	list, err := BCS.GetAllUsers()
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_CA_MSP, "Ca get user list failed: "+err.Error())
+		return
+	}
+	for _, u := range list {
+		if u == "admin" {
+			continue
+		}
+		user1, _ := models.FindUserByName(u)
+		users = append(users, schema.UserListSwag{
+			ID:        user1.ID,
+			UserName:  user1.UserName,
+			Email:     user1.Email,
+			Phone:     user1.Phone,
+			Password:  user1.Password,
+			CreatedOn: user1.CreatedOn,
+			Role:      user1.Role,
+		})
+	}
+	appG.Response(http.StatusOK, e.SUCCESS, users)
+}
+
+// @Summary  注销用户
 // @Tags 用户管理
 // @Accept json
 // @Produce  json
 // @Param   account  body   schema.RevokeSwag   true "注销"
+// @Security ApiKeyAuth
 // @Success 200 {string} gin.Context.JSON
 // @Failure 400 {string} gin.Context.JSON
 // @Router /api/v1/user/revoke  [POST]
 func Revoker(c *gin.Context) {
 	appG := app.Gin{C: c}
 	var reqInfo schema.RevokeSwag
-	var data = "ok"
 	err := c.BindJSON(&reqInfo)
 	if err != nil {
 		appG.Response(http.StatusOK, e.INVALID_PARAMS, nil)
 		return
 	}
-
+	claims := c.MustGet("claims").(*util.Claims)
+	if claims == nil {
+		appG.Response(http.StatusOK, e.ERROR_AUTH, nil)
+		return
+	}
+	id, err := strconv.Atoi(claims.Id)
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_NOT_EXIST, err)
+		return
+	}
+	admin, err := models.FindUserById(id)
 	// check if admin user
 	res, err := BCS.QueryCC("user", "check",
-		[]string{reqInfo.UserName, hash.EncodeMD5(reqInfo.Identity)}, setting.Peers[0])
+		[]string{admin.UserName, admin.Identity}, setting.Peers[0])
 	if err != nil {
 		appG.Response(http.StatusOK, e.ERROR_CC_QUERY_FAILED, nil)
 		return
 	}
-	role, err := strconv.ParseInt(string(res), 10, 32)
+	role, err := strconv.ParseInt(res, 10, 32)
 	if err != nil {
 		appG.Response(http.StatusOK, e.ERROR, "Convert res failed.")
 		return
 	}
 	if role != ROLE_ADMIN {
-		appG.Response(http.StatusOK, e.ERROR_AUTH_NOT_PERMISSION, "No permission")
+		appG.Response(http.StatusOK, e.ERROR_AUTH, "No permission")
 		return
 	}
-
-	user, err := models.FindUserByName(reqInfo.UserName)
-	if err == nil || len(user.Phone) == 0 {
-		data = "First Login"
+	var resp []string
+	for _, u := range reqInfo.UserName {
+		user, err := models.FindUserByName(u)
+		fmt.Println("Found user: ", user.UserName)
+		if err != nil {
+			resp = append(resp, "fail")
+			continue
+		}
+		_, ok := BCS.RevokeUser(user.UserName, "org1", user.Password, "user")
+		if !ok {
+			resp = append(resp, "ok")
+			continue
+		}
+		_, err = models.DelUser(&user)
+		// 刪除链上凭证
+		BCS.InvokeCC("user", "del", [][]byte{
+			[]byte(user.UserName),
+			[]byte(user.Identity),
+		}, setting.Peers)
+		resp = append(resp, "ok")
 	}
 
-	res1, ok := BCS.RevokeUser(reqInfo.UserName, "org1", user.CaSecure, "user")
-	if !ok {
-		appG.Response(http.StatusOK, e.ERROR_CA_ENROLL_FAILED, res1)
-		return
-	}
-
-	_, err = models.DelUser(&user)
-	if err != nil {
-		logging.Error("Delete user record failed: ", err.Error())
-	}
-
-	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{
-		"msg": data,
-	})
+	appG.Response(http.StatusOK, e.SUCCESS, resp)
 }
 
 // @Summary 刷新token
@@ -394,7 +482,6 @@ func ModifyUser(c *gin.Context) {
 			user.Email = reqInfo.Email
 			user.Phone = reqInfo.Phone
 			user.Address = reqInfo.Address
-			//	user.Header = reqInfo.Header
 			_, err := models.UpdateUserInfo(&user)
 			if err != nil {
 				code = e.ERROR_EXIST
@@ -427,48 +514,57 @@ func Password(c *gin.Context) {
 	var reqInfo schema.PasswordSwag
 	err := c.BindJSON(&reqInfo)
 	if err != nil {
-		appG.Response(http.StatusOK, e.INVALID_PARAMS, map[string]interface{}{
-			"data": "Invalid json inputs",
-		})
+		appG.Response(http.StatusOK, e.INVALID_PARAMS, "Invalid json inputs")
 		return
 	}
 	claims := c.MustGet("claims").(*util.Claims)
 	if claims == nil {
-		appG.Response(http.StatusOK, e.ERROR_AUTH, map[string]interface{}{
-			"data": "Auth error",
-		})
+		appG.Response(http.StatusOK, e.ERROR_AUTH, "Auth error")
 		return
 	}
 	id, err := strconv.Atoi(claims.Id)
 	if err != nil {
-		appG.Response(http.StatusOK, e.ERROR_NOT_EXIST, map[string]interface{}{
-			"data": err.Error(),
-		})
+		appG.Response(http.StatusOK, e.ERROR_NOT_EXIST,
+			err.Error())
 		return
 	}
 	user, err := models.FindUserById(id)
 	if err != nil {
-		appG.Response(http.StatusOK, e.ERROR_NOT_EXIST, map[string]interface{}{
-			"data": err.Error(),
-		})
+		appG.Response(http.StatusOK, e.ERROR_NOT_EXIST, "Find user err: "+err.Error())
 		return
 	}
-	if hash.EncodeMD5(reqInfo.OldPassword) != user.Password {
-		appG.Response(http.StatusOK, e.INVALID_OLD_PASS, map[string]interface{}{
-			"data": err.Error(),
-		})
+	oldHashPass := hash.EncodeSHA256(reqInfo.OldPassword)
+	if oldHashPass != user.Password {
+		appG.Response(http.StatusOK, e.INVALID_OLD_PASS, "password mismatch.")
 		return
 	}
-	_, isOk := models.UpdateUserNewPassword(&user, reqInfo.NewPassword)
+	if user.UserName == "admin" {
+		appG.Response(http.StatusOK, e.ERROR_EDIT_FAIL, "admin password can not be update!")
+		return
+	}
+	//// 注销用户
+	//res, ok := BCS.RevokeUser(user.UserName, "org1", hash.EncodeSHA256(user.Password), "user")
+	//if !ok {
+	//	appG.Response(http.StatusOK, e.ERROR_EDIT_FAIL, "Revoke user failed:"+res)
+	//	return
+	//}
+	//res2, ok := BCS.RegisterUser(user.UserName, "org1", hash.EncodeSHA256(reqInfo.NewPassword), "user")
+	//if !ok {
+	//	appG.Response(http.StatusOK, e.ERROR_EDIT_FAIL, "Register user failed:"+res2)
+	//	return
+	//}
+	hashPasswd := hash.EncodeSHA256(reqInfo.NewPassword)
+	_, err = BCS.ModifyUserSecret(user.UserName, hashPasswd)
+	if err != nil {
+		appG.Response(http.StatusOK, e.ERROR_CA_MSP, "CA modify user failed:"+err.Error())
+		return
+	}
+	_, isOk := models.UpdateUserNewPassword(&user, hashPasswd)
 	if isOk != nil {
-		appG.Response(http.StatusOK, e.ERROR_EDIT_FAIL, map[string]interface{}{
-			"data": "update table failed",
-		})
+		appG.Response(http.StatusOK, e.ERROR_EDIT_FAIL, "update user passwd failed.")
 		return
 	}
-	appG.Response(http.StatusOK, e.SUCCESS, map[string]interface{}{
-		"data": "ok",
-	})
+	appG.Response(http.StatusOK, e.SUCCESS, "ok")
 	return
 }
 

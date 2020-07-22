@@ -81,7 +81,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/bcs/points": {
+        "/api/v1/bcs/points/{number}": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -93,6 +93,16 @@ var doc = `{
                     "区块链监控"
                 ],
                 "summary": "查询所有采集点及其信息数量",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "查询限制返回的数量",
+                        "name": "number",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -530,6 +540,39 @@ var doc = `{
                 }
             }
         },
+        "/api/v1/user/list": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "已注册的用户列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/user/login": {
             "post": {
                 "consumes": [
@@ -544,7 +587,7 @@ var doc = `{
                 "summary": "用户登录",
                 "parameters": [
                     {
-                        "description": "用户名、密码",
+                        "description": "用户名、密码,admin是默认的管理员账号",
                         "name": "account",
                         "in": "body",
                         "required": true,
@@ -797,6 +840,11 @@ var doc = `{
         },
         "/api/v1/user/revoke": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -806,7 +854,7 @@ var doc = `{
                 "tags": [
                     "用户管理"
                 ],
-                "summary": "用户注销",
+                "summary": "注销用户",
                 "parameters": [
                     {
                         "description": "注销",
@@ -927,14 +975,14 @@ var doc = `{
             "type": "object",
             "properties": {
                 "password": {
-                    "description": "登录密码",
+                    "description": "登录密码(管理员)",
                     "type": "string",
-                    "example": "1234"
+                    "example": "lzawt_admin"
                 },
                 "user_name": {
-                    "description": "登录邮箱",
+                    "description": "登录用户名",
                     "type": "string",
-                    "example": "teddy"
+                    "example": "admin"
                 }
             }
         },
@@ -1052,17 +1100,27 @@ var doc = `{
         "schema.FarmSwag": {
             "type": "object",
             "properties": {
+                "book_mark": {
+                    "description": "书签bookmark",
+                    "type": "string",
+                    "example": "f~admin~1594382265"
+                },
                 "end_time": {
                     "type": "string",
                     "example": "9999999999"
                 },
-                "point": {
+                "page_size": {
+                    "description": "页大小",
                     "type": "string",
-                    "example": "teddy"
+                    "example": "10"
                 },
                 "star_time": {
                     "type": "string",
                     "example": "1594382265"
+                },
+                "user": {
+                    "type": "string",
+                    "example": "admin"
                 }
             }
         },
@@ -1084,9 +1142,19 @@ var doc = `{
         "schema.PicSwag": {
             "type": "object",
             "properties": {
+                "book_mark": {
+                    "description": "书签bookmark",
+                    "type": "string",
+                    "example": "p~0018DE743E31~1594382265"
+                },
                 "end_time": {
                     "type": "string",
                     "example": "1595382265"
+                },
+                "page_size": {
+                    "description": "页大小",
+                    "type": "string",
+                    "example": "10"
                 },
                 "point": {
                     "type": "string",
@@ -1128,6 +1196,11 @@ var doc = `{
                     "type": "string",
                     "example": "1234"
                 },
+                "role": {
+                    "description": "用户角色   //0:管理员,1：普通员工",
+                    "type": "string",
+                    "example": "1"
+                },
                 "username": {
                     "description": "用户名",
                     "type": "string",
@@ -1138,26 +1211,38 @@ var doc = `{
         "schema.RevokeSwag": {
             "type": "object",
             "properties": {
-                "identity": {
-                    "type": "string",
-                    "example": "4522261111111111"
-                },
                 "user_name": {
-                    "type": "string",
-                    "example": "teddy"
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "teddy",
+                        "teddy1"
+                    ]
                 }
             }
         },
         "schema.SensorSwag": {
             "type": "object",
             "properties": {
+                "book_mark": {
+                    "description": "书签bookmark",
+                    "type": "string",
+                    "example": "s~19372180~1594382265"
+                },
                 "end_time": {
                     "type": "string",
                     "example": "1595382265"
                 },
+                "page_size": {
+                    "description": "页大小",
+                    "type": "string",
+                    "example": "10"
+                },
                 "point": {
                     "type": "string",
-                    "example": "0018DE743E31"
+                    "example": "19372180"
                 },
                 "star_time": {
                     "type": "string",

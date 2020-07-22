@@ -93,12 +93,9 @@ func (s *SmartContract) add(APIstub shim.ChaincodeStubInterface, args []string) 
 	}
 	unixNano := timeStampToUnixNanoStr(ts.Seconds, int64(ts.Nanos))
 	index := args[0] + "~" + args[1] + "~" + unixNano
-	txID :=  APIstub.GetTxID()
-	if len(txID) == 0 {
-		return shim.Error("Invalid tx")
-	}
-	fmt.Printf("index:%s\n", index)
-	APIstub.PutState(index, []byte(args[2]+"~"+txID))
+	//fmt.Printf("index:%s\n", index)
+
+	APIstub.PutState(index, []byte(args[2]+"~"+APIstub.GetTxID()))
 	return shim.Success(nil)
 }
 
@@ -117,22 +114,24 @@ func (s *SmartContract) queryOne(APIstub shim.ChaincodeStubInterface, args []str
 // 按采集点和时间范围查询记录信息，输入采集点、起始时间戳（十六进制）
 func (s *SmartContract) query(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
 
-	if len(args) != 4 {
-		return shim.Error("Incorrect number of arguments. Expecting 4")
+	if len(args) != 6 {
+		return shim.Error("Incorrect number of arguments. Expecting 6")
 	}
 	startKey := args[0] + "~" + args[1] + "~" + args[2]
 	endKey := args[0] + "~" + args[1] + "~" + args[3]
+	pageSize, err := strconv.ParseInt(args[4], 10, 32)
+	bookMark := args[5]
 
-	fmt.Printf("startKey:%s\nendKey:%s\n", startKey, endKey)
+	fmt.Printf("startKey:%s\n,endKey:%s\n", startKey, endKey)
 
-	resultsIterator, err := APIstub.GetStateByRange(startKey, endKey)
+	resultsIterator, responserMeta, err := APIstub.GetStateByRangeWithPagination(startKey, endKey, int32(pageSize), bookMark)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
 	defer resultsIterator.Close()
 
 	var buffer bytes.Buffer
-	buffer.WriteString("[")
+	buffer.WriteString("{\"data\":[")
 
 	bArrayMemberAlreadyWritten := false
 	for resultsIterator.HasNext() {
@@ -144,11 +143,15 @@ func (s *SmartContract) query(APIstub shim.ChaincodeStubInterface, args []string
 		if bArrayMemberAlreadyWritten == true {
 			buffer.WriteString(",")
 		}
+		strs := strings.Split(string(queryResponse.Value), "~")
+		if len(strs[0])  == 0 || len(strs[1]) == 0 {
+			continue
+		}
+
 		buffer.WriteString("{\"k\":\"")
 		buffer.WriteString(queryResponse.Key)
 		buffer.WriteString("\"")
 
-		strs := strings.Split(string(queryResponse.Value),"~")
 		buffer.WriteString(", \"v\":")
 		// Record is a JSON object, so we write as-is
 		buffer.WriteString(strs[0])
@@ -157,11 +160,23 @@ func (s *SmartContract) query(APIstub shim.ChaincodeStubInterface, args []string
 		buffer.WriteString("\"}")
 		bArrayMemberAlreadyWritten = true
 	}
-	buffer.WriteString("]")
+	buffer.WriteString("],")
 
-	fmt.Printf("queryDatas: %s\n", buffer.String())
+	bufferWithPage := addPaginationMetadataToQueryResults(&buffer, responserMeta)
+	fmt.Printf("queryDatas: %s\n", bufferWithPage.String())
 	return shim.Success(buffer.Bytes())
 
+}
+
+func addPaginationMetadataToQueryResults(buffer *bytes.Buffer, responseMetadata *sc.QueryResponseMetadata) *bytes.Buffer {
+
+	buffer.WriteString("\"page\":{\"count\":\"")
+	buffer.WriteString(fmt.Sprintf("%v", responseMetadata.FetchedRecordsCount))
+	buffer.WriteString("\", \"book_mark\":\"")
+	buffer.WriteString(responseMetadata.Bookmark)
+	buffer.WriteString("\"}}")
+
+	return buffer
 }
 
 func main() {

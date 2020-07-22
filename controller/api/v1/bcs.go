@@ -93,14 +93,16 @@ func Transactions(c *gin.Context) {
 // @Tags 区块链监控
 // @Accept json
 // @Produce  json
+// @Param  number path int true "查询限制返回的数量" Format(int64)
 // @Success 200 {string} gin.Context.JSON
 // @Failure 400 {string} gin.Context.JSON
-// @Router  /api/v1/bcs/points   [GET]
+// @Router  /api/v1/bcs/points/{number}   [GET]
 func Points(c *gin.Context) {
 	st := time.Now()
 	appG := app.Gin{C: c}
+	number := c.Param("number")
 
-	trans, err := models.GetAllPoints()
+	trans, err := models.GetAllPoints(number)
 	if err != nil {
 		appG.Response(http.StatusOK, e.ERROR_DB_ERROR, "DB query all points failed.")
 		return
@@ -111,7 +113,7 @@ func Points(c *gin.Context) {
 	//	res[v.Point] = num
 	//	//break
 	//}
-	appG.C.Writer.Header().Set("t",time.Since(st).String())
+	appG.C.Writer.Header().Set("t", time.Since(st).String())
 	appG.Response(http.StatusOK, e.SUCCESS, trans)
 	return
 }

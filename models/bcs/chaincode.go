@@ -29,7 +29,7 @@ func (c *Client) InstallCC(cc, path, ver, peer string) error {
 		Package: ccPkg,
 	}
 
-	resps, err := c.rc.InstallCC(req, targetPeer)
+	resps, err := c.RC.InstallCC(req, targetPeer)
 	if err != nil {
 		return errors.WithMessage(err, "installCC error")
 	}
@@ -77,7 +77,7 @@ func (c *Client) InstantiateCC(cc, path string, args []string, ver, peer string)
 
 	// send request and handle response
 	reqPeers := resmgmt.WithTargetEndpoints(peer)
-	resp, err := c.rc.InstantiateCC(c.Channel, req, reqPeers)
+	resp, err := c.RC.InstantiateCC(c.Channel, req, reqPeers)
 	if err != nil {
 		if strings.Contains(err.Error(), "already exists") {
 			return "", nil
@@ -106,7 +106,7 @@ func (c *Client) InvokeCC(cc, fun string, args [][]byte, peers []string) (fab.Tr
 	}
 	// send request and handle response, peers is needed
 	reqPeers := channel.WithTargetEndpoints(peers...)
-	resp, err := c.cc.Execute(req, reqPeers)
+	resp, err := c.CC.Execute(req, reqPeers)
 	//log.Printf("Invoke chaincode response:\n id: %v\nvalidate: %v\nchaincode status: %v\n\n",
 	//	resp.TransactionID,
 	//	resp.TxValidationCode,
@@ -127,7 +127,7 @@ func (c *Client) QueryCC(cc, fun string, keys []string, peer string) (string, er
 
 	// send request and handle response
 	reqPeers := channel.WithTargetEndpoints(peer)
-	resp, err := c.cc.Query(req, reqPeers)
+	resp, err := c.CC.Query(req, reqPeers)
 	if err != nil {
 		return "", errors.WithMessage(err, "query chaincode error")
 	}
@@ -160,7 +160,7 @@ func (c *Client) UpgradeCC(cc, path, ver string, args []string, peer string) err
 
 	// send request and handle response
 	reqPeers := resmgmt.WithTargetEndpoints(peer)
-	resp, err := c.rc.UpgradeCC(c.Channel, req, reqPeers)
+	resp, err := c.RC.UpgradeCC(c.Channel, req, reqPeers)
 	if err != nil {
 		return errors.WithMessage(err, "instantiate chaincode error")
 	}

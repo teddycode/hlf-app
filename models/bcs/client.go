@@ -6,14 +6,13 @@ import (
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/msp"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
 	"github.com/hyperledger/fabric-sdk-go/pkg/core/config"
-	dsc "github.com/hyperledger/fabric-sdk-go/pkg/fab/discovery"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fabsdk"
 	"log"
 	"os"
 )
 
 var (
-	CCGoPath  = os.Getenv("GOPATH") // GOPATH used for chaincode
+	CCGoPath = os.Getenv("GOPATH") // GOPATH used for chaincode
 )
 
 type Client struct {
@@ -26,13 +25,10 @@ type Client struct {
 
 	// sdk clients
 	SDK *fabsdk.FabricSDK
-	rc  *resmgmt.Client
-	cc  *channel.Client
-	mc  *msp.Client
-	lc  *ledger.Client
-
-	// discovery
-	dc *dsc.Client // discovery client
+	RC  *resmgmt.Client
+	CC  *channel.Client
+	MC  *msp.Client
+	LC  *ledger.Client
 }
 
 func New(cfg, org, admin, user, chans string) *Client {
@@ -52,7 +48,7 @@ func New(cfg, org, admin, user, chans string) *Client {
 	c.SDK = sdk
 	log.Println("Initialized fabric sdk")
 
-	c.rc, c.cc, c.lc = NewSDKClient(sdk, chans, c.OrgName, c.OrgAdmin, c.OrgUser)
+	c.RC, c.CC, c.LC = NewSDKClient(sdk, chans, c.OrgName, c.OrgAdmin, c.OrgUser)
 
 	// CA
 	c.removeUserData()
@@ -101,5 +97,5 @@ func NewSDKClient(sdk *fabsdk.FabricSDK, channelID, orgName,
 
 // RegisterChaincodeEvent more easy than event client to registering chaincode event.
 //func (c *Client) RegisterChaincodeEvent(ccid, eventName string) (fab.Registration, <-chan *fab.CCEvent, error) {
-//	return c.cc.RegisterChaincodeEvent(ccid, eventName)
+//	return c.CC.RegisterChaincodeEvent(ccid, eventName)
 //}

@@ -16,15 +16,14 @@ const HEADER_IMAGE_PATH = "./test/header/images/"
 type User struct {
 	Model
 	UserName string `json:"user_name" gorm:"type:varchar(20);unique;not null"`
-	Identity string `json:"identity" gorm:"type:varchar(20)"`
-	Password string `json:"password" gorm:"type:varchar(20)"`
+	Identity string `json:"identity" gorm:"type:varchar(100)"`
+	Password string `json:"password" gorm:"type:varchar(100)"`
 	Phone    string `json:"phone" gorm:"type:varchar(12)"`
-	Email    string `json:"email" gorm:"type:varchar(20)"`
+	Email    string `json:"email" gorm:"type:varchar(30)"`
 	Role     int    `json:"role" gorm:"type:int;default 1"`
-	CaSecure string `json:"ca_secure" gorm:"type:varchar(20)"`
 	Secret   string `json:"secret" gorm:"type:varchar(20)"`
-	Address  string `json:"address" gorm:"type:varchar(50)"`
-	Header   string `json:"header" gorm:"type:varchar(10)"`
+	Address  string `json:"address" gorm:"type:varchar(100)"`
+	Header   string `json:"header" gorm:"type:varchar(50)"`
 }
 
 // create user info
@@ -136,7 +135,7 @@ func UpdateUserNewPassword(user *User, newPassword string) (int, error) {
 	}
 	db.First(user)
 	user.Secret = secretString
-	user.Password = hash.EncodeMD5(newPassword)
+	user.Password = hash.EncodeSHA256(newPassword)
 	err := db.Save(user).Error
 	if err != nil {
 		return 0, err
