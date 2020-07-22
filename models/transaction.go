@@ -82,7 +82,21 @@ func CountTxNumByDay() ([]TxCnter, error) {
 	if err != nil {
 		return txCnts, err
 	}
+	// 倒序
+	for i := 0; i < 12; i++ {
+		txCnts[i], txCnts[23-i] = txCnts[23-i], txCnts[i]
+	}
 	return txCnts, err
+}
+
+var Weeks = map[string]string{
+	"Wednesday": "星期三",
+	"Tuesday":   "星期二",
+	"Monday":    "星期一",
+	"Sunday":    "星期日",
+	"Saturday":  "星期六",
+	"Friday":    "星期五",
+	"Thursday":  "星期四",
 }
 
 // count tx number by week
@@ -96,7 +110,7 @@ func CountTxNumByWeek() ([]TxCnter, error) {
 	for i := 0; i < 7; i++ {
 		lt := nt.Add(d)
 		sql += fmt.Sprintf("SELECT '%s' AS unit, COUNT(id) AS value FROM transactions WHERE TIMESTAMP <= '%s' and TIMESTAMP > '%s' ",
-			lt.Weekday().String(), nt.Format("2006-01-02 15:04:05"), lt.Format("2006-01-02 15:04:05"))
+			Weeks[lt.Weekday().String()], nt.Format("2006-01-02 15:04:05"), lt.Format("2006-01-02 15:04:05"))
 		if i != 6 {
 			sql += " UNION "
 		}
@@ -106,6 +120,10 @@ func CountTxNumByWeek() ([]TxCnter, error) {
 	err := db.Raw(sql).Find(&txCnts).Error
 	if err != nil {
 		return txCnts, err
+	}
+	// 倒序
+	for i := 0; i < 3; i++ {
+		txCnts[i], txCnts[6-i] = txCnts[6-i], txCnts[i]
 	}
 	return txCnts, err
 }
@@ -121,16 +139,20 @@ func CountTxNumByMoth() ([]TxCnter, error) {
 	for i := 0; i < 30; i++ {
 		lt := nt.Add(d)
 		sql += fmt.Sprintf("SELECT '%d' AS unit, COUNT(id) AS value FROM transactions WHERE TIMESTAMP <= '%s' and TIMESTAMP > '%s' ",
-			nt.Day(), nt.Format("2006-01-02 15:04:05"), lt.Format("2006-01-02 15:04:05"))
+			lt.Day(), nt.Format("2006-01-02 15:04:05"), lt.Format("2006-01-02 15:04:05"))
 		if i != 29 {
 			sql += " UNION "
 		}
 		nt = lt
 	}
-//	fmt.Println(sql)
+	//	fmt.Println(sql)
 	err := db.Raw(sql).Find(&txCnts).Error
 	if err != nil {
 		return txCnts, err
+	}
+	// 倒序
+	for i := 0; i < 15; i++ {
+		txCnts[i], txCnts[29-i] = txCnts[29-i], txCnts[i]
 	}
 	return txCnts, err
 }
@@ -154,11 +176,16 @@ func CountTxNumByYear() ([]TxCnter, error) {
 			y--
 		}
 	}
-//	fmt.Println(sql)
+	//	fmt.Println(sql)
 	err := db.Raw(sql).Find(&txCnts).Error
 	if err != nil {
 		return txCnts, err
 	}
+	// 倒序
+	for i := 0; i < 6; i++ {
+		txCnts[i], txCnts[11-i] = txCnts[11-i], txCnts[i]
+	}
+
 	return txCnts, err
 }
 

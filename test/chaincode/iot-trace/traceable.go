@@ -93,7 +93,7 @@ func (s *SmartContract) add(APIstub shim.ChaincodeStubInterface, args []string) 
 	}
 	unixNano := timeStampToUnixNanoStr(ts.Seconds, int64(ts.Nanos))
 	index := args[0] + "~" + args[1] + "~" + unixNano
-	//fmt.Printf("index:%s\n", index)
+	fmt.Printf("index:%s\n", index)
 
 	APIstub.PutState(index, []byte(args[2]+"~"+APIstub.GetTxID()))
 	return shim.Success(nil)
