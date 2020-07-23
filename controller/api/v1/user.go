@@ -234,6 +234,7 @@ func List(c *gin.Context) {
 			Password:  user1.Password,
 			CreatedOn: user1.CreatedOn,
 			Role:      user1.Role,
+			Address:   user.Address,
 		})
 	}
 	appG.Response(http.StatusOK, e.SUCCESS, users)

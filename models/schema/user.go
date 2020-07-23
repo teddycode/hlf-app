@@ -16,7 +16,7 @@ type User struct {
 //注册
 type RegSwag struct {
 	Username string `json:"username" binding:"required" example:"teddy"`            //用户名
-	Role     int `json:"role" example:"1"`                                       // 用户角色   //0:管理员,1：普通员工
+	Role     int    `json:"role" example:"1"`                                       // 用户角色   //0:管理员,1：普通员工
 	Identity string `json:"identity" binding:"required" example:"4522261111111111"` // identity
 	Password string `json:"password"  binding:"required" example:"1234"`            //密码
 }
@@ -61,6 +61,7 @@ type UserListSwag struct {
 	Email     string `json:"email"`
 	Phone     string `json:"phone"`
 	Password  string `json:"password"`
-	CreatedOn int64    `json:"created_on"`
+	CreatedOn int64  `json:"created_on"`
 	Role      int    `json:"role"`
+	Address   string `json:"address"`
 }
