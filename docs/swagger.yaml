@@ -164,8 +164,8 @@ definitions:
         type: string
       role:
         description: 用户角色   //0:管理员,1：普通员工
-        example: "1"
-        type: string
+        example: 1
+        type: integer
       username:
         description: 用户名
         example: teddy

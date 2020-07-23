@@ -1198,8 +1198,8 @@ var doc = `{
                 },
                 "role": {
                     "description": "用户角色   //0:管理员,1：普通员工",
-                    "type": "string",
-                    "example": "1"
+                    "type": "integer",
+                    "example": 1
                 },
                 "username": {
                     "description": "用户名",

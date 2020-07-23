@@ -122,11 +122,11 @@ func Reg(c *gin.Context) {
 	var newUser models.User
 	newUser.UserName = reqInfo.Username
 	newUser.Identity = reqInfo.Identity
-	newUser.Role = ROLE_USER
+	newUser.Role = reqInfo.Role
 	newUser.Password = passwdEncode //密码md5值保存
 	newUser.Secret = rand.RandStringBytesMaskImprSrcUnsafe(5)
-	newUser.CreatedOn = int(time.Now().Unix())
-	newUser.ModifiedOn = int(time.Now().Unix())
+	newUser.CreatedOn = time.Now().Unix()
+	newUser.ModifiedOn = time.Now().Unix()
 	newUser.Header = "default.png"
 	userId, isSuccess := models.NewUser(&newUser)
 	if userId > 0 {

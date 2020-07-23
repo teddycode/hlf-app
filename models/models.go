@@ -14,8 +14,8 @@ var db *gorm.DB
 //基础模型 都用Id 做自增键  都有创建时间和更新时间
 type Model struct {
 	ID         int `gorm:"primary_key" json:"id"`
-	CreatedOn  int `json:"created_on"`
-	ModifiedOn int `json:"modified_on"`
+	CreatedOn  int64 `json:"created_on"`
+	ModifiedOn int64 `json:"modified_on"`
 }
 
 //初始化数据库连接池设置

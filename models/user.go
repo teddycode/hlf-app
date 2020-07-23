@@ -20,7 +20,7 @@ type User struct {
 	Password string `json:"password" gorm:"type:varchar(100)"`
 	Phone    string `json:"phone" gorm:"type:varchar(12)"`
 	Email    string `json:"email" gorm:"type:varchar(30)"`
-	Role     int    `json:"role" gorm:"type:int;default 1"`
+	Role     int `json:"role" gorm:"type:int;default 1"`
 	Secret   string `json:"secret" gorm:"type:varchar(20)"`
 	Address  string `json:"address" gorm:"type:varchar(100)"`
 	Header   string `json:"header" gorm:"type:varchar(50)"`
@@ -86,7 +86,7 @@ func UpdateUserInfo(newUser *User) (int, error) {
 	oldUser.Email = newUser.Email
 	oldUser.Address = newUser.Address
 	oldUser.Phone = newUser.Phone
-	oldUser.ModifiedOn = int(time.Now().Unix())
+	oldUser.ModifiedOn = time.Now().Unix()
 	err = db.Save(&oldUser).Error
 	if err != nil {
 		return 0, nil
