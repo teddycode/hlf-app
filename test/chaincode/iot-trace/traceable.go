@@ -1,0 +1,188 @@
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"github.com/hyperledger/fabric/core/chaincode/shim"
+	sc "github.com/hyperledger/fabric/protos/peer"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+)
+
+// 定义智能合约结构体
+type SmartContract struct {
+}
+
+// 传感器数据
+type Sensor struct {
+	PointID string `json:"point_id"` // 采集点ID
+	TypeID  string `json:"type_id"`  // 指标类型ID
+	Value   string `json:"value"`    // 指标数值
+	Unit    string `json:"unit"`     // 单位
+}
+
+// 图片数据格式
+type Picture struct {
+	PointID string `json:"point_id"` // 采集点ID
+	Type    string `json:"type"`     // 类型
+	FName   string `json:"f_name"`   // 文件名
+	Size    string `json:"size"`     //	大小
+}
+
+// 农事记录数据格式
+type Farm struct {
+	Name     string `json:"name"`     // 操作名称
+	Time     string `json:"time"`     // 操作时间
+	Behavior string `json:"behavior"` // 操作行为
+	Info     string `json:"info"`     // 具体信息
+}
+
+var Cnt = 0
+var Lock sync.Mutex
+
+// 全局计数器，避免高并发引起主键冲突
+func getCounter() string {
+	Lock.Lock()
+	defer Lock.Unlock()
+	Cnt++
+	if Cnt > 16 {
+		Cnt = 0
+	}
+	return strconv.FormatInt(int64(Cnt), 16)
+}
+
+// 时间戳转换
+func timeStampToUnixNanoStr(sec, nano int64) string {
+	return strconv.FormatInt(time.Unix(sec, nano).UnixNano(), 10)
+}
+
+// 初始化合约
+func (s *SmartContract) Init(APIstub shim.ChaincodeStubInterface) sc.Response {
+	return shim.Success([]byte("success"))
+}
+
+// 合约逻辑调用处理函数
+func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response {
+	// 检索合约函数
+	function, args := APIstub.GetFunctionAndParameters()
+	if function == "add" { // 添加记录
+		return s.add(APIstub, args)
+	} else if function == "query" { // 查询记录
+		return s.query(APIstub, args)
+	} else if function == "queryOne" { // 查询记录
+		return s.queryOne(APIstub, args)
+	}
+
+	return shim.Error("Invalid Smart Contract function name.")
+}
+
+// 传感器example：{"Args":["add","s","point01",\"{...}\"]}'
+// 图片example：{"Args":["add","p","point01",\"{...}\"]}'
+// 农事example：{"Args":["add","f","user1",\"{...}\"]}'
+// 以采集点&时间戳为主键，保存传感器数据、图片数据、农事管理数据。
+func (s *SmartContract) add(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+
+	if len(args) != 3 {
+		return shim.Error("Incorrect number of arguments. Expecting 3")
+	}
+	ts, err := APIstub.GetTxTimestamp() // 获取交易的时间戳
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	unixNano := timeStampToUnixNanoStr(ts.Seconds, int64(ts.Nanos))
+	index := args[0] + "~" + args[1] + "~" + unixNano
+	fmt.Printf("index:%s\n", index)
+
+	APIstub.PutState(index, []byte(args[2]+"~"+APIstub.GetTxID()))
+	return shim.Success(nil)
+}
+
+// 查询指定key的值
+func (s *SmartContract) queryOne(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+	fmt.Println("args: ", args)
+	byte1, err := APIstub.GetState(args[0])
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	//fmt.Println("query results: ", string(byte1))
+	return shim.Success(byte1)
+}
+
+// 传感器example:'{"Args":["query","s","point01"，"0","time2"]}'
+// 按采集点和时间范围查询记录信息，输入采集点、起始时间戳（十六进制）
+func (s *SmartContract) query(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+
+	if len(args) != 6 {
+		return shim.Error("Incorrect number of arguments. Expecting 6")
+	}
+	startKey := args[0] + "~" + args[1] + "~" + args[2]
+	endKey := args[0] + "~" + args[1] + "~" + args[3]
+	pageSize, err := strconv.ParseInt(args[4], 10, 32)
+	bookMark := args[5]
+
+	fmt.Printf("startKey:%s\n,endKey:%s\n", startKey, endKey)
+
+	resultsIterator, responserMeta, err := APIstub.GetStateByRangeWithPagination(startKey, endKey, int32(pageSize), bookMark)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	defer resultsIterator.Close()
+
+	var buffer bytes.Buffer
+	buffer.WriteString("{\"data\":[")
+
+	bArrayMemberAlreadyWritten := false
+	for resultsIterator.HasNext() {
+		queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+		// Add a comma before array members, suppress it for the first array member
+		if bArrayMemberAlreadyWritten == true {
+			buffer.WriteString(",")
+		}
+		strs := strings.Split(string(queryResponse.Value), "~")
+		if len(strs[0])  == 0 || len(strs[1]) == 0 {
+			continue
+		}
+
+		buffer.WriteString("{\"k\":\"")
+		buffer.WriteString(queryResponse.Key)
+		buffer.WriteString("\"")
+
+		buffer.WriteString(", \"v\":")
+		// Record is a JSON object, so we write as-is
+		buffer.WriteString(strs[0])
+		buffer.WriteString(", \"t\":\"")
+		buffer.WriteString(strs[1])
+		buffer.WriteString("\"}")
+		bArrayMemberAlreadyWritten = true
+	}
+	buffer.WriteString("],")
+
+	bufferWithPage := addPaginationMetadataToQueryResults(&buffer, responserMeta)
+	fmt.Printf("queryDatas: %s\n", bufferWithPage.String())
+	return shim.Success(buffer.Bytes())
+
+}
+
+func addPaginationMetadataToQueryResults(buffer *bytes.Buffer, responseMetadata *sc.QueryResponseMetadata) *bytes.Buffer {
+
+	buffer.WriteString("\"page\":{\"count\":\"")
+	buffer.WriteString(fmt.Sprintf("%v", responseMetadata.FetchedRecordsCount))
+	buffer.WriteString("\", \"book_mark\":\"")
+	buffer.WriteString(responseMetadata.Bookmark)
+	buffer.WriteString("\"}}")
+
+	return buffer
+}
+
+func main() {
+	// Create a new Smart Contract
+	err := shim.Start(new(SmartContract))
+	if err != nil {
+		fmt.Printf("Error creating new Smart Contract: %s", err)
+	}
+}
