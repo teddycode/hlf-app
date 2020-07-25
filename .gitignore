@@ -22,3 +22,10 @@
 # IDE configs
 .idea
 .vscode
+
+./config/keystore/*
+./runtime
+./test/header/*
+./test/runtime/*
+./test/simple-network
+./transh
